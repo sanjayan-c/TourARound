@@ -123,7 +123,7 @@ class CameraView : AppCompatActivity() {
             runOnUiThread {
                 Toast.makeText(
                     this,
-                    "Flash is not available currently",
+                    "Flash is not available currently!",
                     Toast.LENGTH_SHORT
                 ).show()
             }
