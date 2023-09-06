@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- layout_overlay_distance.xml -->
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_overlay_navigation"
+    android:layout_width="wrap_content"
+    android:layout_height="100dp"
+    android:background="@drawable/overlay_background2"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <!-- TextView to display total remaining distance (30% of the screen) -->
+        <TextView
+            android:id="@+id/textRemainingTotalDistance"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:gravity="center"
+            android:text="Total Remaining Distance: "
+            android:layout_gravity="center_vertical|start"
+            android:textColor="#FFF"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textStyle="bold"
+            android:textSize="25dp"
+            android:layout_marginEnd="8dp"/>
+
+        <!-- Vertical Line (5dp) -->
+        <View
+            android:layout_width="5dp"
+            android:layout_height="match_parent"
+            android:background="#FFF"
+            android:id="@+id/verticalLine"/>
+
+        <!-- TextView to display remaining distance (70% of the screen) -->
+        <TextView
+            android:id="@+id/textRemainingDistance"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="7"
+            android:gravity="center"
+            android:layout_gravity="center_vertical|end"
+            android:textColor="#FFF"
+            android:textSize="18sp"
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+</RelativeLayout>
