@@ -3,12 +3,12 @@ package com.example.touraround
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Paint
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.View
 import android.view.animation.Animation
@@ -65,7 +65,7 @@ class CameraView : AppCompatActivity(), SensorEventListener {
     private var magnetometerReading = FloatArray(3)
     private lateinit var arrowImageView: ImageView
 
-    private val destinationPoints: MutableList<LatLng> = mutableListOf()
+    private val destinationPoints: MutableList<Pair<String, LatLng>> = mutableListOf()
     private var currentDestinationIndex = 0
     private val radiusThreshold = 5.0
 
@@ -339,7 +339,7 @@ class CameraView : AppCompatActivity(), SensorEventListener {
                     println("End Location: ${endLocation.lat}, ${endLocation.lng}")
 
                     // Add the end location of each step to the destinationPoints list
-                    destinationPoints.add(LatLng(endLocation.lat, endLocation.lng))
+                    destinationPoints.add(Pair(instruction, LatLng(endLocation.lat, endLocation.lng)))
                 }
             }
         }
@@ -355,37 +355,16 @@ class CameraView : AppCompatActivity(), SensorEventListener {
 
         if (currentDestinationIndex <= destinationPoints.size - 1) {
 
-            // Log the input values to calculateDistance
-            Log.d("calculateDistanceInput", "CurrentLatLng: $currentLatLng, Destination: ${destinationPoints[currentDestinationIndex]}")
-            // Check if we have reached the radius of the current destination
+           // Check if we have reached the radius of the current destination
             val distanceToDestination = calculateDistance(
                 currentLatLng,
-                destinationPoints[currentDestinationIndex]
+                destinationPoints[currentDestinationIndex].second
             )
 
             // Update distance to the next turn in the TextView
             val textViewRemainingDistance = findViewById<TextView>(R.id.textRemainingDistance)
             // Show total distance left in the TextView
             val textViewRemainingTotalDistance = findViewById<TextView>(R.id.textRemainingTotalDistance)
-
-          //Show distance left to the next turn
-            if (distanceToDestination > radiusThreshold && distanceToDestination<1000) {
-                // Round the distance to the nearest decimal number with one decimal place
-                val roundedDistance = String.format("%.0f", distanceToDestination)
-                textViewRemainingDistance.text = "Next turn in: ${roundedDistance} m"
-            }else if(distanceToDestination>=1000){
-                val roundedDistance = String.format("%.2f", distanceToDestination/1000.00)
-                textViewRemainingDistance.text = "Next turn in: ${roundedDistance} km"
-            }else if (distanceToDestination <= radiusThreshold) {
-                if (currentDestinationIndex == destinationPoints.size - 1) {
-                    textViewRemainingDistance.text = "Destination has arrived"
-                    textViewRemainingTotalDistance.text = "0 m"
-                    return
-                    // Handle logic for reaching the final destination
-                } else {
-                    textViewRemainingDistance.text = "Next turn"
-                }
-            }
 
             // Calculate the total distance left
             val totalDistanceLeft = calculateTotalDistanceLeftFromCurrentLocation(distanceToDestination, currentDestinationIndex)
@@ -402,22 +381,56 @@ class CameraView : AppCompatActivity(), SensorEventListener {
             println("Distance to Destination: $distanceToDestination meters")
             println("Current Destination Index: $currentDestinationIndex")
             // Display the coordinates of the next destination
-            val nextDestination2 = destinationPoints[currentDestinationIndex]
+            val nextDestination2 = destinationPoints[currentDestinationIndex].second
             println("First Next Destination Coordinates: ${nextDestination2.latitude}, ${nextDestination2.longitude}")
 
-            if (distanceToDestination <= radiusThreshold) {
-                // Debugging: Print relevant values
-                println("Check Distance to Destination: $distanceToDestination meters")
-                // Move to the next destination point
-                currentDestinationIndex++
-                println("New Current Destination Index: $currentDestinationIndex")
+            //Show distance left to the next turn
+            if (distanceToDestination > radiusThreshold && distanceToDestination<1000) {
+                // Round the distance to the nearest decimal number with one decimal place
+                val roundedDistance = String.format("%.0f", distanceToDestination)
+                textViewRemainingDistance.text = "Next turn in: ${roundedDistance} m"
+            }else if(distanceToDestination>=1000){
+                val roundedDistance = String.format("%.2f", distanceToDestination/1000.00)
+                textViewRemainingDistance.text = "Next turn in: ${roundedDistance} km"
+            }else if (distanceToDestination <= radiusThreshold) {
+                if (currentDestinationIndex == destinationPoints.size - 1) {
+                    textViewRemainingDistance.text = "Destination has arrived"
+                    textViewRemainingTotalDistance.text = "0 m"
+                    // Update the arrow's visibility on the main thread
+                    runOnUiThread {
+                        arrowImageView.visibility = View.INVISIBLE
+                    }
+                    return
+                    // Handle logic for reaching the final destination
+                } else {
+                    // Debugging: Print relevant values
+                    println("Check Distance to Destination: $distanceToDestination meters")
+                    // Move to the next destination point
+                    currentDestinationIndex++
+                    println("New Current Destination Index: $currentDestinationIndex")
+                    val currentInstruction = destinationPoints[currentDestinationIndex].first
+                    // Remove HTML tags and content within <div> tags
+                    val cleanInstruction = currentInstruction
+                        .replace(Regex("<[^>]*>"), "") // Remove HTML tags
+                        .replace(Regex("\\(.*?\\)"), "") // Remove content within parentheses
+                    // Add spaces between concatenated words (e.g., "StPass" becomes "St Pass")
+                    val cleanInstructionWithSpaces = cleanInstruction.replace(Regex("(?<=\\w)(?=[A-Z])"), " ")
+                    textViewRemainingDistance.text = "$cleanInstructionWithSpaces"
+                    // Display the cleanInstruction for 5 seconds
+                    // Delay further processing for 5 seconds
+                    val handler = Handler()
+                    handler.postDelayed({
+                        // Continue with further processing after 5 seconds if needed
+                    }, 5000) // 5000 milliseconds = 5 seconds
+                }
             }
+
             // Calculate the angle to the next destination point
             val angle = angleFromCoordinate(
                 currentLatLng.latitude,
                 currentLatLng.longitude,
-                destinationPoints[currentDestinationIndex].latitude,
-                destinationPoints[currentDestinationIndex].longitude
+                destinationPoints[currentDestinationIndex].second.latitude,
+                destinationPoints[currentDestinationIndex].second.longitude
             )
             // Update the currentArrowAngle with the calculated angle
             calculatedArrowAngle = angle.toFloat()
@@ -427,7 +440,7 @@ class CameraView : AppCompatActivity(), SensorEventListener {
             }
             println("Angle to Next Destination: $angle degrees")
             // Display the coordinates of the next destination
-            val nextDestination = destinationPoints[currentDestinationIndex]
+            val nextDestination = destinationPoints[currentDestinationIndex].second
             println("Next Destination Coordinates: ${nextDestination.latitude}, ${nextDestination.longitude}")
         }
     }
@@ -467,21 +480,8 @@ class CameraView : AppCompatActivity(), SensorEventListener {
 
         // Calculate the total distance left from the current location to the last end location
         for (i in startIndex until destinationPoints.size - 1) {
-            distanceFromIndex += calculateDistance(destinationPoints[i], destinationPoints[i + 1])
+            distanceFromIndex += calculateDistance(destinationPoints[i].second, destinationPoints[i + 1].second)
         }
         return distanceToDestination + distanceFromIndex
     }
-    private fun calculateTextSizeToFitWidth(text: String, width: Int): Float {
-        val paint = Paint()
-        var textSize = 100f // Initial text size, you can adjust this as needed
-
-        do {
-            paint.textSize = textSize
-            val textWidth = paint.measureText(text)
-            textSize -= 1f // Reduce text size by 1 unit each time
-        } while (textWidth > width && textSize > 0)
-
-        return textSize
-    }
-
 }
