@@ -10,7 +10,19 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/cameraPreview"/>
-
+    <!-- Add a TextView for the "Stop directions" text -->
+    <TextView
+        android:id="@+id/stopDirectionsText"
+        android:layout_width="200sp"
+        android:layout_height="25sp"
+        android:text="Stop directions"
+        android:textSize="16sp"
+        android:textColor="#FFF"
+        android:gravity="center_horizontal"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="0dp"
+        android:visibility="gone"
+        android:background="@drawable/overlay_background2" />
     <!--<ImageButton-->
     <ImageButton
         android:layout_width="40sp"
@@ -21,7 +33,15 @@
         app:tint="#fff"
         android:id="@+id/toggleFlash"
         android:background="?attr/selectableItemBackgroundBorderless"/>
-
+    <!-- Add your arrow view here -->
+    <ImageView
+        android:id="@+id/selectDestination"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/arrow"
+        android:visibility="visible"
+        android:layout_gravity="center"
+        android:layout_marginTop="16dp" />
     <!-- Arrow Overlay -->
     <include
         layout="@layout/layout_overlay_arrow"
@@ -49,7 +69,8 @@
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="16dp"
-            android:background="?attr/selectableItemBackgroundBorderless" />
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:visibility="gone"/>
 
         <!-- Arrow button to hide overlay at the top (Initially set to be invisible) -->
         <ImageButton

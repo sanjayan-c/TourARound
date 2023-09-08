@@ -3,6 +3,7 @@ package com.example.touraround
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -52,11 +53,12 @@ class CameraView : AppCompatActivity(), SensorEventListener {
     private var camera: Camera? = null
     private var isFlashOn = false // Track the flashlight state
 
+    private lateinit var locationCallback: LocationCallback
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     //private val destination = LatLng(6.971339883324587, 79.87446757262208) // Mattakuliya Food City
-    private val destination = LatLng(6.96557381762747, 79.86631999619358) // St. James Church
+    //private val destination = LatLng(6.96557381762747, 79.86631999619358) // St. James Church
     //private val destination = LatLng(6.914869207457449, 79.97295522337072) // SLIIT Malabe
-    //private val destination = LatLng(6.967464608431239, 79.86920268732987)
+    private val destination = LatLng(6.967464608431239, 79.86920268732987)
 
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
@@ -85,6 +87,12 @@ class CameraView : AppCompatActivity(), SensorEventListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
+        // Get a reference to the system's sensor manager
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        // Obtain a reference to the device's accelerometer sensor
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        // Obtain a reference to the device's magnetometer sensor
+        magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
 
@@ -109,44 +117,18 @@ class CameraView : AppCompatActivity(), SensorEventListener {
             toggleFlashIcon()
         }
 
-        val showOverlayButton = findViewById<ImageButton>(R.id.showOverlayButton)
-        val hideOverlayButton = findViewById<ImageButton>(R.id.hideOverlayButton)
-        val overlayLayout = findViewById<View>(R.id.layout_overlay_navigation)
+        val selectDestinationImageView = findViewById<ImageView>(R.id.selectDestination)
+        val stopDirectionsText = findViewById<View>(R.id.stopDirectionsText)
 
-        showOverlayButton.setOnClickListener {
-            val slideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up)
-            overlayLayout.startAnimation(slideUp)
-            overlayLayout.visibility = View.VISIBLE
-
-            showOverlayButton.visibility = View.GONE
-            hideOverlayButton.visibility = View.VISIBLE
+        selectDestinationImageView.setOnClickListener {
+            // Show navigation directions here
+            showNavigationDirections()
         }
 
-        hideOverlayButton.setOnClickListener {
-            val slideDown = AnimationUtils.loadAnimation(this, R.anim.slide_down)
-            overlayLayout.startAnimation(slideDown)
-
-            slideDown.setAnimationListener(object : Animation.AnimationListener {
-                override fun onAnimationStart(animation: Animation?) {}
-                override fun onAnimationEnd(animation: Animation?) {
-                    overlayLayout.visibility = View.GONE
-                    hideOverlayButton.visibility = View.GONE
-                    showOverlayButton.visibility = View.VISIBLE
-                }
-                override fun onAnimationRepeat(animation: Animation?) {}
-            })
+        stopDirectionsText.setOnClickListener {
+            // Stop navigation and reset everything here
+            stopNavigationAndReset()
         }
-
-        // Get a reference to the system's sensor manager
-        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        // Obtain a reference to the device's accelerometer sensor
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        // Obtain a reference to the device's magnetometer sensor
-        magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
-
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
-        requestLocationAndProcessDirections()
     }
     override fun onResume() {
         super.onResume()
@@ -263,7 +245,7 @@ class CameraView : AppCompatActivity(), SensorEventListener {
             interval = 10000 // Update interval in milliseconds
         }
 
-        val locationCallback = object : LocationCallback() {
+        locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult?) {
                 locationResult?.lastLocation?.let { location ->
                     val currentLatLng = LatLng(location.latitude, location.longitude)
@@ -395,11 +377,13 @@ class CameraView : AppCompatActivity(), SensorEventListener {
             }else if (distanceToDestination <= radiusThreshold) {
                 if (currentDestinationIndex == destinationPoints.size - 1) {
                     textViewRemainingDistance.text = "Destination has arrived"
+                    textViewRemainingTotalDistance.setTextColor(Color.parseColor("#D55B07"))
                     textViewRemainingTotalDistance.text = "0 m"
                     // Update the arrow's visibility on the main thread
                     runOnUiThread {
                         arrowImageView.visibility = View.INVISIBLE
                     }
+                    currentDestinationIndex++
                     return
                     // Handle logic for reaching the final destination
                 } else {
@@ -484,4 +468,80 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         }
         return distanceToDestination + distanceFromIndex
     }
+
+    private fun showNavigationDirections() {
+        val showOverlayButton = findViewById<ImageButton>(R.id.showOverlayButton)
+        val hideOverlayButton = findViewById<ImageButton>(R.id.hideOverlayButton)
+        val overlayLayout = findViewById<View>(R.id.layout_overlay_navigation)
+        val stopDirectionsText = findViewById<View>(R.id.stopDirectionsText)
+        val selectDestinationImageView = findViewById<ImageView>(R.id.selectDestination)
+        selectDestinationImageView.visibility = View.INVISIBLE
+        stopDirectionsText.visibility = View.VISIBLE
+        showOverlayButton.visibility = View.VISIBLE
+        showOverlayButton.setOnClickListener {
+            val slideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up)
+            overlayLayout.startAnimation(slideUp)
+            overlayLayout.visibility = View.VISIBLE
+
+            showOverlayButton.visibility = View.GONE
+            hideOverlayButton.visibility = View.VISIBLE
+        }
+
+        hideOverlayButton.setOnClickListener {
+            val slideDown = AnimationUtils.loadAnimation(this, R.anim.slide_down)
+            overlayLayout.startAnimation(slideDown)
+
+            slideDown.setAnimationListener(object : Animation.AnimationListener {
+                override fun onAnimationStart(animation: Animation?) {}
+                override fun onAnimationEnd(animation: Animation?) {
+                    overlayLayout.visibility = View.GONE
+                    hideOverlayButton.visibility = View.GONE
+                    showOverlayButton.visibility = View.VISIBLE
+                }
+                override fun onAnimationRepeat(animation: Animation?) {}
+            })
+        }
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        requestLocationAndProcessDirections()
+    }
+
+    private fun stopNavigationAndReset() {
+        // Implement your code to stop navigation and reset everything here
+        val stopDirectionsText = findViewById<View>(R.id.stopDirectionsText)
+        val selectDestinationImageView = findViewById<ImageView>(R.id.selectDestination)
+        val showOverlayButton = findViewById<ImageButton>(R.id.showOverlayButton)
+        val hideOverlayButton = findViewById<ImageButton>(R.id.hideOverlayButton)
+        val overlayLayout = findViewById<View>(R.id.layout_overlay_navigation)
+
+        selectDestinationImageView.visibility = View.VISIBLE
+        stopDirectionsText.visibility = View.INVISIBLE
+
+        showOverlayButton.visibility = View.GONE
+        hideOverlayButton.visibility = View.GONE
+        overlayLayout.visibility = View.GONE
+
+        // Hide the arrowImageView
+        runOnUiThread {
+            arrowImageView.visibility = View.INVISIBLE
+        }
+
+        // Clear any directions or destinationPoints
+        destinationPoints.clear()
+        currentDestinationIndex = 0
+        hasRetrievedDirections = false
+
+        // Clear any location updates
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+
+        // Clear any other relevant data or variables
+
+        // Optionally, update UI elements to reflect the reset state, e.g., clear TextViews
+        val textViewRemainingDistance = findViewById<TextView>(R.id.textRemainingDistance)
+        val textViewRemainingTotalDistance = findViewById<TextView>(R.id.textRemainingTotalDistance)
+        textViewRemainingDistance.text = ""
+        textViewRemainingTotalDistance.text = ""
+    }
+
 }
