@@ -8,6 +8,8 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.location.Location
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -55,6 +57,13 @@ class CameraView : AppCompatActivity(), SensorEventListener {
 
     private lateinit var locationCallback: LocationCallback
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private val LOCATION_PERMISSION_REQUEST_CODE = 100
+    private val BACKGROUND_LOCATION_PERMISSION_REQUEST_CODE = 101
+    private val TIME_BETWEEN_UPDATES: Long = 1000 // Adjust as needed
+    private val MIN_TIME_BETWEEN_UPDATES: Long = 1000
+    private val MIN_DISTANCE_CHANGE_FOR_UPDATES: Float = 1f // Adjust as needed
+    private var currentLocation: Location? = null
+
     //private val destination = LatLng(6.971339883324587, 79.87446757262208) // Mattakuliya Food City
     //private val destination = LatLng(6.96557381762747, 79.86631999619358) // St. James Church
     //private val destination = LatLng(6.914869207457449, 79.97295522337072) // SLIIT Malabe
@@ -69,7 +78,7 @@ class CameraView : AppCompatActivity(), SensorEventListener {
 
     private val destinationPoints: MutableList<Pair<String, LatLng>> = mutableListOf()
     private var currentDestinationIndex = 0
-    private val radiusThreshold = 5.0
+    private val radiusThreshold = 10.0
 
     private var calculatedArrowAngle: Float = 0.0f
 
@@ -117,6 +126,32 @@ class CameraView : AppCompatActivity(), SensorEventListener {
             toggleFlashIcon()
         }
 
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                // Handle location updates here
+                val location = locationResult.lastLocation
+                currentLocation = location // Update currentLocation
+                currentLocation?.let { nonNullLocation ->
+                    logLocation(nonNullLocation)
+                    // Use 'nonNullLocation' to access latitude and longitude, for example
+                }
+                if (hasRetrievedDirections) {
+                    // Call checkDistanceAndUpdate when hasRetrievedDirections is true
+                    checkDistanceAndUpdate(LatLng(location.latitude, location.longitude))
+                }
+            }
+        }
+
+        // Check for location permission and request it if not granted
+        if (hasLocationPermission()) {
+            // Permission already granted, start location updates
+            startLocationUpdates()
+        } else {
+            requestLocationPermission()
+        }
+
         val selectDestinationImageView = findViewById<ImageView>(R.id.selectDestination)
         val stopDirectionsText = findViewById<View>(R.id.stopDirectionsText)
 
@@ -130,6 +165,7 @@ class CameraView : AppCompatActivity(), SensorEventListener {
             stopNavigationAndReset()
         }
     }
+
     override fun onResume() {
         super.onResume()
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
@@ -239,53 +275,116 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    private fun requestLocationAndProcessDirections() {
-        val locationRequest = LocationRequest.create().apply {
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-            interval = 10000 // Update interval in milliseconds
+    private fun hasLocationPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun hasBackgroundLocationPermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ContextCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            // On older Android versions, background location permission is not needed
+            true
         }
+    }
 
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult?) {
-                locationResult?.lastLocation?.let { location ->
-                    val currentLatLng = LatLng(location.latitude, location.longitude)
-
-                    if (!hasRetrievedDirections) {
-                        // Retrieve directions only the first time
-                        GlobalScope.launch(Dispatchers.IO) {
-                            val directionsResult =
-                                DirectionsUtils.getDirections(
-                                    this@CameraView,
-                                    currentLatLng,
-                                    destination
-                                )
-                            processDirectionsResult(directionsResult)
-
-                            // Log statements to execute after directions have been retrieved
-                            println("Location result received.")
-                            println("Destination Points: $destinationPoints")
-                            checkDistanceAndUpdate(currentLatLng)
-                        }
-                        hasRetrievedDirections = true
-                    }
-
-                    // Log the current GPS coordinates
-                    println("Current Location: ${currentLatLng.latitude}, ${currentLatLng.longitude}")
-                    checkDistanceAndUpdate(currentLatLng)
+    private fun requestLocationPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+            LOCATION_PERMISSION_REQUEST_CODE
+        )
+    }
+    private fun requestBackgroundLocationPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf( Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+            BACKGROUND_LOCATION_PERMISSION_REQUEST_CODE
+        )
+    }
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, check for background location permission
+                if (hasBackgroundLocationPermission()) {
+                    // Background location permission is granted or not needed, start location updates
+                    startLocationUpdates()
+                } else {
+                    // Request background location permission
+                    requestBackgroundLocationPermission()
                 }
+            } else {
+                // Permission denied, handle accordingly
+                // You can show a message to the user or disable location-related functionality
+            }
+        } else if (requestCode == BACKGROUND_LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Background location permission granted, start location updates
+                startLocationUpdates()
+            } else {
+                // Background location permission denied, handle accordingly
+                // You can show a message to the user or disable background location-related functionality
             }
         }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            == PackageManager.PERMISSION_GRANTED
-        ) {
-            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
-        } else {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                LOCATION_PERMISSION_REQUEST_CODE
-            )
+    }
+
+    private fun startLocationUpdates() {
+        if (hasLocationPermission()) {
+            val locationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval(TIME_BETWEEN_UPDATES)
+                .setFastestInterval(MIN_TIME_BETWEEN_UPDATES)
+                .setSmallestDisplacement(MIN_DISTANCE_CHANGE_FOR_UPDATES)
+            try {
+                fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
+                Log.d("LocationUpdates", "Location updates started.")
+            } catch (securityException: SecurityException) {
+                // Handle SecurityException if it occurs
+                Log.e("LocationUpdates", "Error requesting location updates: ${securityException.message}")
+            }
         }
+    }
+
+//    override fun onStop() {
+//        super.onStop()
+//        fusedLocationClient.removeLocationUpdates(locationCallback)
+//        Log.d("LocationUpdates", "Location updates stopped.")
+//    }
+
+    private fun logLocation(location: Location) {
+        Log.d("LocationUpdates", "Latitude: ${location.latitude}, Longitude: ${location.longitude}")
+    }
+
+    private fun requestLocationAndProcessDirections(location: Location) {
+        // Pass 'location' to your directions processing code here
+        val currentLatLng = LatLng(location.latitude, location.longitude)
+
+        if (!hasRetrievedDirections) {
+            // Retrieve directions only the first time
+            GlobalScope.launch(Dispatchers.IO) {
+                val directionsResult = DirectionsUtils.getDirections(
+                    this@CameraView,
+                    currentLatLng,
+                    destination
+                )
+                processDirectionsResult(directionsResult)
+
+                // Log statements to execute after directions have been retrieved
+                println("Location result received.")
+                println("Destination Points: $destinationPoints")
+                checkDistanceAndUpdate(currentLatLng)
+            }
+            hasRetrievedDirections = true
+        }
+
+        // Log the current GPS coordinates
+        println("Current Location: ${currentLatLng.latitude}, ${currentLatLng.longitude}")
+        checkDistanceAndUpdate(currentLatLng)
     }
     private fun processDirectionsResult(directionsResult: DirectionsResult?) {
         if (directionsResult != null) {
@@ -325,9 +424,6 @@ class CameraView : AppCompatActivity(), SensorEventListener {
                 }
             }
         }
-    }
-    companion object {
-        private const val LOCATION_PERMISSION_REQUEST_CODE = 123
     }
 
     private fun checkDistanceAndUpdate(currentLatLng: LatLng) {
@@ -470,41 +566,45 @@ class CameraView : AppCompatActivity(), SensorEventListener {
     }
 
     private fun showNavigationDirections() {
-        val showOverlayButton = findViewById<ImageButton>(R.id.showOverlayButton)
-        val hideOverlayButton = findViewById<ImageButton>(R.id.hideOverlayButton)
-        val overlayLayout = findViewById<View>(R.id.layout_overlay_navigation)
-        val stopDirectionsText = findViewById<View>(R.id.stopDirectionsText)
-        val selectDestinationImageView = findViewById<ImageView>(R.id.selectDestination)
-        selectDestinationImageView.visibility = View.INVISIBLE
-        stopDirectionsText.visibility = View.VISIBLE
-        showOverlayButton.visibility = View.VISIBLE
-        showOverlayButton.setOnClickListener {
-            val slideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up)
-            overlayLayout.startAnimation(slideUp)
-            overlayLayout.visibility = View.VISIBLE
+        val location = currentLocation // Assign currentLocation to a local variable
+        if (location != null) {
+            val showOverlayButton = findViewById<ImageButton>(R.id.showOverlayButton)
+            val hideOverlayButton = findViewById<ImageButton>(R.id.hideOverlayButton)
+            val overlayLayout = findViewById<View>(R.id.layout_overlay_navigation)
+            val stopDirectionsText = findViewById<View>(R.id.stopDirectionsText)
+            val selectDestinationImageView = findViewById<ImageView>(R.id.selectDestination)
+            selectDestinationImageView.visibility = View.INVISIBLE
+            stopDirectionsText.visibility = View.VISIBLE
+            showOverlayButton.visibility = View.VISIBLE
+            showOverlayButton.setOnClickListener {
+                val slideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up)
+                overlayLayout.startAnimation(slideUp)
+                overlayLayout.visibility = View.VISIBLE
 
-            showOverlayButton.visibility = View.GONE
-            hideOverlayButton.visibility = View.VISIBLE
+                showOverlayButton.visibility = View.GONE
+                hideOverlayButton.visibility = View.VISIBLE
+            }
+
+            hideOverlayButton.setOnClickListener {
+                val slideDown = AnimationUtils.loadAnimation(this, R.anim.slide_down)
+                overlayLayout.startAnimation(slideDown)
+
+                slideDown.setAnimationListener(object : Animation.AnimationListener {
+                    override fun onAnimationStart(animation: Animation?) {}
+                    override fun onAnimationEnd(animation: Animation?) {
+                        overlayLayout.visibility = View.GONE
+                        hideOverlayButton.visibility = View.GONE
+                        showOverlayButton.visibility = View.VISIBLE
+                    }
+                    override fun onAnimationRepeat(animation: Animation?) {}
+                })
+            }
+
+            requestLocationAndProcessDirections(location)
+        } else {
+            // Handle the case where the current location is not available yet
+            // You can show a message to the user or take appropriate action
         }
-
-        hideOverlayButton.setOnClickListener {
-            val slideDown = AnimationUtils.loadAnimation(this, R.anim.slide_down)
-            overlayLayout.startAnimation(slideDown)
-
-            slideDown.setAnimationListener(object : Animation.AnimationListener {
-                override fun onAnimationStart(animation: Animation?) {}
-                override fun onAnimationEnd(animation: Animation?) {
-                    overlayLayout.visibility = View.GONE
-                    hideOverlayButton.visibility = View.GONE
-                    showOverlayButton.visibility = View.VISIBLE
-                }
-                override fun onAnimationRepeat(animation: Animation?) {}
-            })
-        }
-
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
-        requestLocationAndProcessDirections()
     }
 
     private fun stopNavigationAndReset() {
@@ -532,8 +632,8 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         currentDestinationIndex = 0
         hasRetrievedDirections = false
 
-        // Clear any location updates
-        fusedLocationClient.removeLocationUpdates(locationCallback)
+//        // Clear any location updates
+//        fusedLocationClient.removeLocationUpdates(locationCallback)
 
         // Clear any other relevant data or variables
 
