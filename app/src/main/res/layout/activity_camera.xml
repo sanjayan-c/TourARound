@@ -5,11 +5,25 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".CameraView">
+
     <androidx.camera.view.PreviewView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/cameraPreview"/>
-
+    <!-- Add a TextView for the "Stop directions" text -->
+    <TextView
+        android:id="@+id/stopDirectionsText"
+        android:layout_width="200sp"
+        android:layout_height="25sp"
+        android:text="Stop directions"
+        android:textSize="16sp"
+        android:textColor="#FFF"
+        android:gravity="center_horizontal"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="0dp"
+        android:visibility="gone"
+        android:background="@drawable/overlay_background2" />
+    <!--<ImageButton-->
     <ImageButton
         android:layout_width="40sp"
         android:layout_height="40sp"
@@ -19,18 +33,58 @@
         app:tint="#fff"
         android:id="@+id/toggleFlash"
         android:background="?attr/selectableItemBackgroundBorderless"/>
-
     <!-- Arrow Overlay -->
     <include
         layout="@layout/layout_overlay_arrow"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="164dp"
+        android:layout_height="181dp"
+        android:layout_above="@id/layout_overlay_header"
         android:layout_centerHorizontal="true"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Container layout to hold header buttons and navigation -->
+    <LinearLayout
+        android:id="@+id/layout_overlay_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="16dp"/>
-    <!-- Arrow Overlay -->
-    <!-- Include the location_cardview layout -->
-    <!-- Location Container (LinearLayout) -->
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <!-- Arrow button at the top -->
+        <ImageButton
+            android:id="@+id/showOverlayButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/arrow_circle_up"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:visibility="gone"/>
+
+        <!-- Arrow button to hide overlay at the top (Initially set to be invisible) -->
+        <ImageButton
+            android:id="@+id/hideOverlayButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/arrow_circle_down"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+
+        <!-- Include the distance overlay (Initially set to be invisible) -->
+        <include
+            android:id="@+id/layout_overlay_navigation"
+            layout="@layout/layout_overlay_navigation"
+            android:layout_width="wrap_content"
+            android:layout_height="100dp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="1dp"
+            android:visibility="gone" />
+    </LinearLayout>
     <LinearLayout
         android:id="@+id/locationContainer"
         android:layout_width="match_parent"

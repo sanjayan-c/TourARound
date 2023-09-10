@@ -1,6 +1,27 @@
 package com.example.touraround
 
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.graphics.Color
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import android.location.Location
+import android.os.Build
+import android.os.Bundle
+import android.os.Handler
+import android.util.Log
+import android.view.View
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
@@ -10,30 +31,8 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.core.content.ContextCompat
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
-import android.location.Location
-import android.os.Build
-import android.os.Bundle
-import android.util.Log
-import android.view.View
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.RelativeLayout
-import android.widget.TextView
-import android.widget.Toast
-import androidx.cardview.widget.CardView
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -43,6 +42,12 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.model.DirectionsLeg
 import com.google.maps.model.DirectionsResult
 import com.google.maps.model.DirectionsStep
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.pow
 
 
@@ -67,7 +72,8 @@ class CameraView : AppCompatActivity(), SensorEventListener {
     //private val destination = LatLng(6.971339883324587, 79.87446757262208) // Mattakuliya Food City
     //private val destination = LatLng(6.96557381762747, 79.86631999619358) // St. James Church
     //private val destination = LatLng(6.914869207457449, 79.97295522337072) // SLIIT Malabe
-    private val destination = LatLng(6.967464608431239, 79.86920268732987)
+    //private val destination = LatLng(6.967464608431239, 79.86920268732987)
+//    private var destination: LatLng? = null
 
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
@@ -77,8 +83,14 @@ class CameraView : AppCompatActivity(), SensorEventListener {
     private lateinit var arrowImageView: ImageView
     private lateinit var nearbyLocations: List<Locations>
 
+    private val destinationPoints: MutableList<Pair<String, LatLng>> = mutableListOf()
+    private var currentDestinationIndex = 0
+    private val radiusThreshold = 10.0
+
     private var calculatedArrowAngle: Float = 0.0f
     private var getAngle: Float = 0.0f
+    private val rotationHistory = mutableListOf<Float>()
+    private val maxHistorySize = 50 // Adjust this as needed
 
     private var hasRetrievedDirections = false
     var isFirstLocationUpdate = true // Add this flag
@@ -161,8 +173,18 @@ class CameraView : AppCompatActivity(), SensorEventListener {
             Log.d("NearbyLocations", "Location list is empty.")
         }
 
-        // Access placesList directly
 
+        val stopDirectionsText = findViewById<View>(R.id.stopDirectionsText)
+
+//        selectDestinationImageView.setOnClickListener {
+//            // Show navigation directions here
+//
+//        }
+
+        stopDirectionsText.setOnClickListener {
+            // Stop navigation and reset everything here
+            stopNavigationAndReset()
+        }
 
     }
     override fun onResume() {
@@ -197,12 +219,31 @@ class CameraView : AppCompatActivity(), SensorEventListener {
             SensorManager.getOrientation(rotationMatrix, orientationValues)
 
             // Calculate the angle based on the device's orientation
-            getAngle = calculateAngle(orientationValues)
+            val sensorAngle = calculateAngle(orientationValues)
+            // Calculate the angle based on the device's orientation
+
+            getAngle = sensorAngle
             // Transform angle to be in the range [0, 360)
 //            arrowImageView.rotation = getAngle
 
             // Update the UI with nearby locations
             updateUIWithNearbyLocations(filteredLocations)
+
+
+            // Smooth the rotation using a moving average
+            rotationHistory.add(sensorAngle)
+            if (rotationHistory.size > maxHistorySize) {
+                rotationHistory.removeAt(0)
+            }
+
+            // Calculate the average rotation from history
+            val smoothedRotation = rotationHistory.average().toFloat()
+
+            // Combine the sensor angle and the calculated angle
+            val finalArrowAngle = smoothedRotation + calculatedArrowAngle
+
+            // Update the arrow's rotation with the finalArrowAngle
+            arrowImageView.rotation = finalArrowAngle
         }
     }
 
@@ -361,7 +402,32 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         // Pass the filtered locations to the UI update function
         updateUIWithNearbyLocations(filteredLocations)
     }
+    private fun requestLocationAndProcessDirections(location: Location,destination:LatLng) {
+        // Pass 'location' to your directions processing code here
+        val currentLatLng = LatLng(location.latitude, location.longitude)
 
+        if (!hasRetrievedDirections) {
+            // Retrieve directions only the first time
+            GlobalScope.launch(Dispatchers.IO) {
+                val directionsResult = DirectionsUtils.getDirections(
+                    this@CameraView,
+                    currentLatLng,
+                    destination
+                )
+                processDirectionsResult(directionsResult)
+
+                // Log statements to execute after directions have been retrieved
+                println("Location result received.")
+                println("Destination Points: $destinationPoints")
+                checkDistanceAndUpdate(currentLatLng)
+            }
+            hasRetrievedDirections = true
+        }
+
+        // Log the current GPS coordinates
+        println("Current Location: ${currentLatLng.latitude}, ${currentLatLng.longitude}")
+        checkDistanceAndUpdate(currentLatLng)
+    }
     private fun processDirectionsResult(directionsResult: DirectionsResult?) {
         if (directionsResult != null) {
             // Process the directions result, e.g., extract route information, duration, etc.
@@ -370,7 +436,7 @@ class CameraView : AppCompatActivity(), SensorEventListener {
 
             for (leg in legs) {
                 val steps: List<DirectionsStep> = leg.steps.toList()
-                val distance = leg.distance.humanReadable
+                val distance = leg.distance.inMeters
                 val duration = leg.duration.humanReadable
                 val startAddress = leg.startAddress
                 val endAddress = leg.endAddress
@@ -394,11 +460,13 @@ class CameraView : AppCompatActivity(), SensorEventListener {
                     println("Duration: $stepDuration")
                     println("Start Location: ${startLocation.lat}, ${startLocation.lng}")
                     println("End Location: ${endLocation.lat}, ${endLocation.lng}")
+
+                    // Add the end location of each step to the destinationPoints list
+                    destinationPoints.add(Pair(instruction, LatLng(endLocation.lat, endLocation.lng)))
                 }
             }
         }
     }
-
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 123
     }
@@ -476,6 +544,10 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         val locationsToRemove = HashSet(locationCardViews.keys) // Create a copy of locations in the HashMap
 
         for (locationInfo in nearbyLocations) {
+            // Get the latitude and longitude from locationInfo
+            val latitude = locationInfo.location.latitude
+            val longitude = locationInfo.location.longitude
+            val destination = LatLng(latitude, longitude)
             // Calculate the angle between the current location and the target location
             val angleToLocation = locationInfo.angle
             val angleToLocatioIn360 = 360-angleToLocation
@@ -516,7 +588,15 @@ class CameraView : AppCompatActivity(), SensorEventListener {
                     tvTitle.text = locationInfo.location.name
                     val formattedDistance = String.format("%.2f km", locationInfo.distance / 1000.0)
                     tvDistance.text = formattedDistance
-
+                    // Add an OnClickListener to the card view
+                    cardView.setOnClickListener {
+                        // Handle the click event here
+                        // You can perform any action when the card view is clicked
+                        // For example, open a detail view for the location
+                        // Replace the following code with your desired action
+                        Toast.makeText(this, "Card clicked for ${locationInfo.location.name}", Toast.LENGTH_SHORT).show()
+                        showNavigationDirections(destination)
+                    }
                     // Add the card view to the UI
                     locationContainer.addView(cardView)
 
@@ -539,6 +619,187 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         }
     }
 
+    private fun checkDistanceAndUpdate(currentLatLng: LatLng) {
+        Log.d("checkDistanceAndUpdate", "Checking distance and updating")
+        Log.d("checkDistanceAndUpdate:","$currentDestinationIndex")
+        println("Destination Points: $destinationPoints")
 
+        if (currentDestinationIndex <= destinationPoints.size - 1) {
+
+            // Check if we have reached the radius of the current destination
+            val distanceToDestination = calculateDistance(
+                currentLatLng,
+                destinationPoints[currentDestinationIndex].second
+            )
+
+            // Update distance to the next turn in the TextView
+            val textViewRemainingDistance = findViewById<TextView>(R.id.textRemainingDistance)
+            // Show total distance left in the TextView
+            val textViewRemainingTotalDistance = findViewById<TextView>(R.id.textRemainingTotalDistance)
+
+            // Calculate the total distance left
+            val totalDistanceLeft = calculateTotalDistanceLeftFromCurrentLocation(distanceToDestination, currentDestinationIndex)
+            if(totalDistanceLeft<1000){
+                // Round the distance to the nearest decimal number with one decimal place
+                val roundedTotalDistance = String.format("%.0f", totalDistanceLeft)
+                textViewRemainingTotalDistance.text = "${roundedTotalDistance} m"
+            }else{
+                // Round the distance to the nearest decimal number with one decimal place
+                val roundedTotalDistance = String.format("%.2f", totalDistanceLeft/1000.00)
+                textViewRemainingTotalDistance.text = "${roundedTotalDistance} km"
+            }
+
+            println("Distance to Destination: $distanceToDestination meters")
+            println("Current Destination Index: $currentDestinationIndex")
+            // Display the coordinates of the next destination
+            val nextDestination2 = destinationPoints[currentDestinationIndex].second
+            println("First Next Destination Coordinates: ${nextDestination2.latitude}, ${nextDestination2.longitude}")
+
+            //Show distance left to the next turn
+            if (distanceToDestination > radiusThreshold && distanceToDestination<1000) {
+                // Round the distance to the nearest decimal number with one decimal place
+                val roundedDistance = String.format("%.0f", distanceToDestination)
+                textViewRemainingDistance.text = "Next turn in: ${roundedDistance} m"
+            }else if(distanceToDestination>=1000){
+                val roundedDistance = String.format("%.2f", distanceToDestination/1000.00)
+                textViewRemainingDistance.text = "Next turn in: ${roundedDistance} km"
+            }else if (distanceToDestination <= radiusThreshold) {
+                if (currentDestinationIndex == destinationPoints.size - 1) {
+                    textViewRemainingDistance.text = "Destination has arrived"
+                    textViewRemainingTotalDistance.setTextColor(Color.parseColor("#D55B07"))
+                    textViewRemainingTotalDistance.text = "0 m"
+                    // Update the arrow's visibility on the main thread
+                    runOnUiThread {
+                        arrowImageView.visibility = View.INVISIBLE
+                    }
+                    currentDestinationIndex++
+                    return
+                    // Handle logic for reaching the final destination
+                } else {
+                    // Debugging: Print relevant values
+                    println("Check Distance to Destination: $distanceToDestination meters")
+                    // Move to the next destination point
+                    currentDestinationIndex++
+                    println("New Current Destination Index: $currentDestinationIndex")
+                    val currentInstruction = destinationPoints[currentDestinationIndex].first
+                    // Remove HTML tags and content within <div> tags
+                    val cleanInstruction = currentInstruction
+                        .replace(Regex("<[^>]*>"), "") // Remove HTML tags
+                        .replace(Regex("\\(.*?\\)"), "") // Remove content within parentheses
+                    // Add spaces between concatenated words (e.g., "StPass" becomes "St Pass")
+                    val cleanInstructionWithSpaces = cleanInstruction.replace(Regex("(?<=\\w)(?=[A-Z])"), " ")
+                    textViewRemainingDistance.text = "$cleanInstructionWithSpaces"
+                    // Display the cleanInstruction for 5 seconds
+                    // Delay further processing for 5 seconds
+                    val handler = Handler()
+                    handler.postDelayed({
+                        // Continue with further processing after 5 seconds if needed
+                    }, 5000) // 5000 milliseconds = 5 seconds
+                }
+            }
+
+            // Calculate the angle to the next destination point
+            val angle = angleFromCoordinate(
+                currentLatLng.latitude,
+                currentLatLng.longitude,
+                destinationPoints[currentDestinationIndex].second.latitude,
+                destinationPoints[currentDestinationIndex].second.longitude
+            )
+            // Update the currentArrowAngle with the calculated angle
+            calculatedArrowAngle = angle.toFloat()
+            // Update the arrow's visibility on the main thread
+            runOnUiThread {
+                arrowImageView.visibility = View.VISIBLE
+            }
+            println("Angle to Next Destination: $angle degrees")
+            // Display the coordinates of the next destination
+            val nextDestination = destinationPoints[currentDestinationIndex].second
+            println("Next Destination Coordinates: ${nextDestination.latitude}, ${nextDestination.longitude}")
+        }
+    }
+
+    private fun calculateTotalDistanceLeftFromCurrentLocation(distanceToDestination: Double, startIndex: Int): Double {
+        var distanceFromIndex = 0.0
+
+        // Calculate the total distance left from the current location to the last end location
+        for (i in startIndex until destinationPoints.size - 1) {
+            distanceFromIndex += calculateDistance(destinationPoints[i].second, destinationPoints[i + 1].second)
+        }
+        return distanceToDestination + distanceFromIndex
+    }
+
+    private fun showNavigationDirections(destination:LatLng) {
+        val location = currentLocation // Assign currentLocation to a local variable
+        if (location != null) {
+            val showOverlayButton = findViewById<ImageButton>(R.id.showOverlayButton)
+            val hideOverlayButton = findViewById<ImageButton>(R.id.hideOverlayButton)
+            val overlayLayout = findViewById<View>(R.id.layout_overlay_navigation)
+            val stopDirectionsText = findViewById<View>(R.id.stopDirectionsText)
+            stopDirectionsText.visibility = View.VISIBLE
+            showOverlayButton.visibility = View.VISIBLE
+            showOverlayButton.setOnClickListener {
+                val slideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up)
+                overlayLayout.startAnimation(slideUp)
+                overlayLayout.visibility = View.VISIBLE
+
+                showOverlayButton.visibility = View.GONE
+                hideOverlayButton.visibility = View.VISIBLE
+            }
+
+            hideOverlayButton.setOnClickListener {
+                val slideDown = AnimationUtils.loadAnimation(this, R.anim.slide_down)
+                overlayLayout.startAnimation(slideDown)
+
+                slideDown.setAnimationListener(object : Animation.AnimationListener {
+                    override fun onAnimationStart(animation: Animation?) {}
+                    override fun onAnimationEnd(animation: Animation?) {
+                        overlayLayout.visibility = View.GONE
+                        hideOverlayButton.visibility = View.GONE
+                        showOverlayButton.visibility = View.VISIBLE
+                    }
+                    override fun onAnimationRepeat(animation: Animation?) {}
+                })
+            }
+
+            requestLocationAndProcessDirections(location,destination)
+        } else {
+            // Handle the case where the current location is not available yet
+            // You can show a message to the user or take appropriate action
+        }
+    }
+
+    private fun stopNavigationAndReset() {
+        // Implement your code to stop navigation and reset everything here
+        val stopDirectionsText = findViewById<View>(R.id.stopDirectionsText)
+        val showOverlayButton = findViewById<ImageButton>(R.id.showOverlayButton)
+        val hideOverlayButton = findViewById<ImageButton>(R.id.hideOverlayButton)
+        val overlayLayout = findViewById<View>(R.id.layout_overlay_navigation)
+        stopDirectionsText.visibility = View.INVISIBLE
+
+        showOverlayButton.visibility = View.GONE
+        hideOverlayButton.visibility = View.GONE
+        overlayLayout.visibility = View.GONE
+
+        // Hide the arrowImageView
+        runOnUiThread {
+            arrowImageView.visibility = View.INVISIBLE
+        }
+
+        // Clear any directions or destinationPoints
+        destinationPoints.clear()
+        currentDestinationIndex = 0
+        hasRetrievedDirections = false
+
+//        // Clear any location updates
+//        fusedLocationClient.removeLocationUpdates(locationCallback)
+
+        // Clear any other relevant data or variables
+
+        // Optionally, update UI elements to reflect the reset state, e.g., clear TextViews
+        val textViewRemainingDistance = findViewById<TextView>(R.id.textRemainingDistance)
+        val textViewRemainingTotalDistance = findViewById<TextView>(R.id.textRemainingTotalDistance)
+        textViewRemainingDistance.text = ""
+        textViewRemainingTotalDistance.text = ""
+    }
 
 }
