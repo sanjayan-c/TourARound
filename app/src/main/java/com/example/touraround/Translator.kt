@@ -31,18 +31,21 @@ import com.google.android.gms.tasks.Task
 import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.functions.ktx.functions
 import com.google.firebase.ktx.Firebase
-//import com.google.firebase.ml.vision.FirebaseVision
-//import com.google.firebase.ml.vision.common.FirebaseVisionImage
-//import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata
-//import com.google.firebase.ml.vision.text.FirebaseVisionCloudTextRecognizerOptions
+import com.google.firebase.ml.vision.FirebaseVision
+import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.gson.JsonPrimitive
+import com.google.mlkit.common.model.DownloadConditions
+import com.google.mlkit.nl.translate.TranslateLanguage
+import com.google.mlkit.nl.translate.Translation
+import com.google.mlkit.nl.translate.TranslatorOptions
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.io.ByteArrayOutputStream
-
 
 
 @ExperimentalGetImage class Translator: AppCompatActivity() {
@@ -53,7 +56,8 @@ import java.io.ByteArrayOutputStream
     private lateinit var recognizedTextView: TextView
     private lateinit var capturedImageView: ImageView
     private lateinit var functions: FirebaseFunctions
-// ...
+    val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+
 
 
 
@@ -223,7 +227,7 @@ import java.io.ByteArrayOutputStream
             val bit = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
 //            val text = recognizeText(bit).toString()
 //            Log.d("recognized text", "$text")
-            recognizeText(bit)
+            recoText(bit)
             return bit
         } catch (e: Exception) {
             e.printStackTrace()
@@ -231,6 +235,29 @@ import java.io.ByteArrayOutputStream
             return null
         }
     }
+
+
+    private fun recoText(bitmap: Bitmap) {
+        val image = FirebaseVisionImage.fromBitmap(bitmap)
+        val recognizer = FirebaseVision.getInstance().onDeviceTextRecognizer
+
+        recognizer.processImage(image)
+            .addOnSuccessListener { visionText ->
+                // Task completed successfully
+                val recognizedText = visionText.text
+                recognizedTextView.text = recognizedText
+                translateWord(recognizedText)
+            }
+            .addOnFailureListener { e ->
+                // Task failed with an exception
+                // Handle the failure or display an error message if needed
+                Log.e("TextRecognition", "Text recognition failed: ${e.message}", e)
+                recognizedTextView.text = "Text recognition failed: ${e.message}"
+
+            }
+    }
+
+
 
 
     private fun scaleBitmapDown(bitmap: Bitmap, maxDimension: Int): Bitmap {
@@ -335,6 +362,47 @@ import java.io.ByteArrayOutputStream
     }
 
 
+
+
+    //Tranlation
+
+    private fun translateWord(word: String): String {
+        val options = TranslatorOptions.Builder()
+            .setSourceLanguage(TranslateLanguage.ENGLISH)
+            .setTargetLanguage(TranslateLanguage.TAMIL)
+            .build()
+        val englishGermanTranslator = Translation.getClient(options)
+
+        var conditions = DownloadConditions.Builder()
+            .requireWifi()
+            .build()
+
+        // Define translatedText outside the inner scope
+        var translatedText = ""
+
+        englishGermanTranslator.downloadModelIfNeeded(conditions)
+            .addOnSuccessListener {
+                // Model downloaded successfully. Okay to start translating.
+                englishGermanTranslator.translate(word)
+                    .addOnSuccessListener { translatedResult ->
+                        // Translation successful.
+                        translatedText = translatedResult.toString()
+                        // Do something with the translatedText if needed
+                    }
+                    .addOnFailureListener { exception ->
+                        // Error.
+                        // Handle the error if needed
+                    }
+                // (Set a flag, unhide the translation UI, etc.)
+            }
+            .addOnFailureListener { exception ->
+                // Model couldn’t be downloaded or other internal error.
+                // Handle the error if needed
+            }
+
+        // Return the translatedText
+        return translatedText
+    }
 
 
 
