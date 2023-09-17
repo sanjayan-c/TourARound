@@ -34,9 +34,12 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBZShPiUN_fogA26tFRvKK79owBT-BuW8c" />
+<!--        <meta-data-->
+<!--            android:name="com.google.firebase.ml.vision.DEPENDENCIES"-->
+<!--            android:value="AIzaSyBZShPiUN_fogA26tFRvKK79owBT-BuW8c" />-->
 
         <activity
-            android:name=".MainActivity"
+            android:name=".Translator"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

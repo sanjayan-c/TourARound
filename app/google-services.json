@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "925196081825",
+    "project_id": "translator-ec5f3",
+    "storage_bucket": "translator-ec5f3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:925196081825:android:73077ff976baacf62e6ee0",
+        "android_client_info": {
+          "package_name": "com.example.touraround"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAV4gRp35vAEWpYjYf6uniOhmitbnylW4o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

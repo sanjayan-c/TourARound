@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Camera Preview -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/viewFinder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+
+    </androidx.camera.view.PreviewView>
+
+    <!-- Captured Image View -->
+    <ImageView
+        android:id="@+id/capturedImageView"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:visibility="gone" />
+
+
+    <!-- Capture Button -->
+    <Button
+        android:id="@+id/captureButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:text="Capture"
+        android:onClick="captureImage" />
+
+    <!-- OCR Text Field -->
+<!--    <EditText-->
+<!--        android:id="@+id/_field"-->
+<!--        android:layout_width="168dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_alignParentTop="true"-->
+<!--        android:layout_centerHorizontal="true"-->
+<!--        android:layout_marginTop="16dp"-->
+<!--        android:hint="Recognized text"-->
+<!--        android:textSize="18sp" />-->
+
+    <!-- Recognized Text View -->
+    <TextView
+        android:id="@+id/recognizedTextView"
+        android:layout_width="168dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:hint="Recognized text"
+        android:textSize="18sp" />
+
+<!--    <Button-->
+<!--        android:id="@+id/logButton"-->
+<!--        android:layout_width="168dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_alignParentTop="true"-->
+<!--        android:layout_centerHorizontal="true"-->
+<!--        android:layout_marginTop="50dp"-->
+<!--        android:hint="Recognized text"-->
+<!--        android:text="Log Event" />-->
+
+</RelativeLayout>
