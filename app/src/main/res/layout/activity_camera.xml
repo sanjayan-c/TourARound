@@ -10,7 +10,33 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/cameraPreview"/>
-    <!-- Add a TextView for the "Stop directions" text -->
+
+    <!-- Include the custom top bar -->
+    <include
+        layout="@layout/top_bar"
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="50sp" />
+    <include
+        layout="@layout/camera_notifications"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/switchBar"
+        android:gravity="center" />
+
+    <include
+        layout="@layout/switch_bar"
+        android:layout_below="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="30sp" />
+    <include
+        layout="@layout/radius_selector"
+        android:layout_marginTop="10sp"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_below="@id/switchBar"/>
+    <!-- TextView for the "Stop directions" text -->
     <TextView
         android:id="@+id/stopDirectionsText"
         android:layout_width="200sp"
@@ -20,20 +46,36 @@
         android:textColor="#FFF"
         android:gravity="center_horizontal"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="0dp"
+        android:layout_marginTop="60sp"
         android:visibility="gone"
         android:background="@drawable/overlay_background2" />
-    <!--<ImageButton-->
+
     <ImageButton
+        android:id="@+id/toggleFlash"
         android:layout_width="40sp"
         android:layout_height="40sp"
         android:layout_alignParentEnd="true"
-        android:layout_margin="10sp"
+        android:layout_marginStart="10sp"
+        android:layout_marginEnd="10sp"
+        android:layout_marginBottom="10sp"
+        android:layout_marginTop="10sp"
+        android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@drawable/flash_on"
-        app:tint="#fff"
-        android:id="@+id/toggleFlash"
-        android:background="?attr/selectableItemBackgroundBorderless"/>
-    <!-- Arrow Overlay -->
+        android:layout_below="@id/switchBar"
+        app:tint="#fff" />
+
+    <ImageView
+        android:id="@+id/translate"
+        android:layout_width="40sp"
+        android:layout_height="40sp"
+        android:layout_below="@id/toggleFlash"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="10sp"
+        android:layout_marginEnd="10sp"
+        android:layout_marginBottom="10sp"
+        android:src="@drawable/translate"
+        app:tint="#fff" />
+
     <include
         layout="@layout/layout_overlay_arrow"
         android:layout_width="164dp"
@@ -42,52 +84,28 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="16dp" />
 
-    <!-- Container layout to hold header buttons and navigation -->
-    <LinearLayout
-        android:id="@+id/layout_overlay_header"
+    <include
+        layout="@layout/layout_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:orientation="vertical"
-        android:gravity="center">
+        android:layout_alignParentBottom="true" />
 
-        <!-- Arrow button at the top -->
-        <ImageButton
-            android:id="@+id/showOverlayButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/arrow_circle_up"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="16dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:visibility="gone"/>
-
-        <!-- Arrow button to hide overlay at the top (Initially set to be invisible) -->
-        <ImageButton
-            android:id="@+id/hideOverlayButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/arrow_circle_down"
-            android:layout_centerHorizontal="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginBottom="16dp"
-            android:visibility="gone"
-            android:background="?attr/selectableItemBackgroundBorderless" />
-
-        <!-- Include the distance overlay (Initially set to be invisible) -->
-        <include
-            android:id="@+id/layout_overlay_navigation"
-            layout="@layout/layout_overlay_navigation"
-            android:layout_width="wrap_content"
-            android:layout_height="100dp"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="1dp"
-            android:visibility="gone" />
-    </LinearLayout>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/layout_overlay_header"
+        android:layout_below="@+id/translate">
     <LinearLayout
         android:id="@+id/locationContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical" />
+    </ScrollView>
+    <!-- Include the overlay_introduction layout -->
+    <include
+        layout="@layout/overlay_introduction"
+        android:id="@+id/introductionOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
 </RelativeLayout>

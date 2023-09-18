@@ -3,4 +3,5 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="my_status_bar_color">#FF000000</color>
+    <color name="bar">#5DC3F1</color>
 </resources>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/switchBar"
+    android:layout_width="match_parent"
+    android:layout_height="30sp"
+    android:orientation="horizontal"
+    android:padding="5sp"
+    android:background="@android:color/darker_gray">
+
+    <!-- TextView to the left of the Switch -->
+    <TextView
+        android:id="@+id/switchTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Turn on to view nearby locations"
+        android:textColor="@color/white"
+        android:gravity="start|center_vertical"
+        android:paddingStart="10sp"/>
+
+    <!-- Switch at the right end -->
+    <Switch
+        android:id="@+id/switchView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:checked="false"
+        android:thumbTint="@color/bar"
+        android:trackTint="@color/white"/>
+</LinearLayout>

@@ -2,26 +2,42 @@ package com.example.touraround
 
 
 import android.Manifest
+import android.app.AlertDialog
+import android.app.Dialog
 import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.location.Location
-import android.os.Build
+import android.net.ConnectivityManager
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
+import android.provider.Settings
 import android.util.Log
 import android.view.View
+import android.view.WindowManager
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.RatingBar
+import android.widget.RelativeLayout
+import android.widget.Spinner
+import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
@@ -31,8 +47,9 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.viewpager2.widget.ViewPager2
+import com.example.touraround.Adapter.PhotoPagerAdapter
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -57,32 +74,24 @@ class CameraView : AppCompatActivity(), SensorEventListener {
     private var cameraFacing = CameraSelector.LENS_FACING_BACK
     private var camera: Camera? = null
     private var isFlashOn = false // Track the flashlight state
-    val locationPermission = Manifest.permission.ACCESS_FINE_LOCATION
-
 
     private lateinit var locationCallback: LocationCallback
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val LOCATION_PERMISSION_REQUEST_CODE = 100
     private val BACKGROUND_LOCATION_PERMISSION_REQUEST_CODE = 101
     private val TIME_BETWEEN_UPDATES: Long = 1000 // Adjust as needed
-    private val MIN_TIME_BETWEEN_UPDATES: Long = 1000
+    private val MAX_TIME_BETWEEN_UPDATES: Long = 1000
     private val MIN_DISTANCE_CHANGE_FOR_UPDATES: Float = 1f // Adjust as needed
     private var currentLocation: Location? = null
-
-    //private val destination = LatLng(6.971339883324587, 79.87446757262208) // Mattakuliya Food City
-    //private val destination = LatLng(6.96557381762747, 79.86631999619358) // St. James Church
-    //private val destination = LatLng(6.914869207457449, 79.97295522337072) // SLIIT Malabe
-    //private val destination = LatLng(6.967464608431239, 79.86920268732987)
-//    private var destination: LatLng? = null
-
+    private var selectedRadius: Int =5000
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
     private var magnetometer: Sensor? = null
     private var accelerometerReading = FloatArray(3)
     private var magnetometerReading = FloatArray(3)
     private lateinit var arrowImageView: ImageView
-    private lateinit var nearbyLocations: List<Locations>
-
+    private val nearbyLocations = ArrayList<com.example.touraround.Location>()
+    private val locationCardViews = HashMap<com.example.touraround.Location, View>() // Initialize a HashMap
     private val destinationPoints: MutableList<Pair<String, LatLng>> = mutableListOf()
     private var currentDestinationIndex = 0
     private val radiusThreshold = 10.0
@@ -93,42 +102,36 @@ class CameraView : AppCompatActivity(), SensorEventListener {
     private val maxHistorySize = 50 // Adjust this as needed
 
     private var hasRetrievedDirections = false
-    var isFirstLocationUpdate = true // Add this flag
-    private var filteredLocations: List<LocationInfo> = mutableListOf()
+    private var isFirstLocationUpdate = false // Add this flag
+    private var nearByLocationsAvailable= false;
+    private var lastNearbyLocation: Location? = null
 
-    private val activityResultLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                startCamera(cameraFacing)
-            }
-        }
+    private lateinit var mPermissionResultLauncher: ActivityResultLauncher<Array<String>>
+
+    private var isCameraPermissionGranted = false
+    private var isLocationPermissionGranted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
 
+        // Check if the introduction overlay has been shown before
+        val sharedPreferences: SharedPreferences = getSharedPreferences("prefs",MODE_PRIVATE)
+        val firstStart = sharedPreferences.getBoolean("firstStart",true)
+
+        if (firstStart) {
+            // Show the introduction overlay
+            showIntroductionOverlay()
+        }
+
         previewView = findViewById(R.id.cameraPreview)
         toggleFlash = findViewById(R.id.toggleFlash)
         arrowImageView = findViewById(R.id.arrowImageView)
 
         val arrowImageView: ImageView = findViewById(R.id.arrowImageView)
-        // Show arrow initially
-//        arrowImageView.visibility = View.VISIBLE
-
-        // Log the contents of nearbyLocations
-        nearbyLocations = LocationData.placesList
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.CAMERA
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            activityResultLauncher.launch(Manifest.permission.CAMERA)
-        } else {
-            startCamera(cameraFacing)
-        }
 
         toggleFlash.setOnClickListener {
             toggleFlashIcon()
@@ -142,50 +145,204 @@ class CameraView : AppCompatActivity(), SensorEventListener {
                 currentLocation?.let { nonNullLocation ->
                     logLocation(nonNullLocation)
                     // Use 'nonNullLocation' to access latitude and longitude, for example
-                }
-                if(isFirstLocationUpdate) {
-                    getNearbyLocations(location)
-                    // Set the flag to false so this code won't run on subsequent updates
-                    isFirstLocationUpdate = false
+                    if (isFirstLocationUpdate) {
+
+                        Log.d("XXXXXXXXXXX", "Inside")
+                        Log.d("Location Updates started with", "${selectedRadius}")
+//                       // Call the method to retrieve nearby locations and populate the nearbyLocations list
+                        nearbyLocations.clear() // Clear the existing list
+                        val cameraView = CameraView()
+                        // Call the method to retrieve nearby locations
+                        DirectionsUtils.nearBylocations(
+                            this@CameraView,
+                            cameraView,
+                            selectedRadius,
+                            nonNullLocation
+                        ) {  retrievedLocations ->
+                            // Update the class-level nearbyLocations with the retrieved data
+                            nearbyLocations.addAll(retrievedLocations)
+
+                            // This is the callback when nearbyLocations are retrieved
+                            // Log or use the contents of nearbyLocations
+                            for (locationData in nearbyLocations) {
+                                Log.d("NearbyLocationData", "Latitude: ${locationData.latitude}")
+                                Log.d("NearbyLocationData", "Longitude: ${locationData.longitude}")
+                                Log.d("NearbyLocationData", "Name: ${locationData.name}")
+                            }
+
+                            // Check if nearbyLocations is not empty and set nearByLocationsAvailable accordingly
+                            if (nearbyLocations.isNotEmpty()) {
+                                Log.d("XXXXXXXXXXX", "Passed")
+                                updateUIWithNearbyLocations(nearbyLocations)
+//                                nearByLocationsAvailable = true
+                            } else {
+                                Log.d("XXXXXXXXXXX", "Failed")
+                            }
+                        }
+                        // Set the flag to false so this code won't run on subsequent updates
+                        isFirstLocationUpdate = false
+                    }
+                    if (hasRetrievedDirections) {
+                        val latLng = LatLng(nonNullLocation.latitude, nonNullLocation.longitude)
+                        checkDistanceAndUpdate(latLng)
+                    }
                 }
             }
         }
 
-        // Check for location permission and request it if not granted
-        if (hasLocationPermission()) {
-            // Permission already granted, start location updates
-            startLocationUpdates()
-        } else {
-            requestLocationPermission()
+        mPermissionResultLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { result: Map<String, Boolean> ->
+
+            if (result[Manifest.permission.CAMERA] != null) {
+                isCameraPermissionGranted = result[Manifest.permission.CAMERA] == true
+            }
+
+            if (result[Manifest.permission.ACCESS_FINE_LOCATION] != null) {
+                isLocationPermissionGranted = result[Manifest.permission.ACCESS_FINE_LOCATION] == true
+            }
+            // Check if both camera and location permissions are granted
+            if (isCameraPermissionGranted && isLocationPermissionGranted) {
+                // Both permissions are granted, start camera and location updates
+                startCamera(cameraFacing)
+                startLocationUpdates()
+            } else {
+                // Handle the case where neither permission is granted
+                // You can show a message to the user or disable functionality that requires these permissions
+                showPermissionRequestDialog()
+            }
+        }
+        requestPermission();
+
+        val radiusSpinner: Spinner = findViewById(R.id.radiusSpinner)
+        val radius= arrayOf(" 5 km "," 10 km "," 15 km "," 20 km ")
+        val arrayAdapter=ArrayAdapter(this@CameraView,android.R.layout.simple_spinner_item,radius)
+        radiusSpinner.adapter=arrayAdapter
+        radiusSpinner?.onItemSelectedListener=object : AdapterView.OnItemSelectedListener{
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
+                selectedRadius = when (p2) {
+                    0 -> 5000 // 1st item selected, 5000 meters (5 km)
+                    1 -> 10000 // 2nd item selected, 10000 meters (10 km)
+                    2 -> 15000 // 3rd item selected, 15000 meters (15 km)
+                    3 -> 20000 // 4th item selected, 20000 meters (20 km)
+                    else -> 5000
+                    }
+                val switchView = findViewById<Switch>(R.id.switchView)
+                if (switchView.isChecked) {
+                    nearbyLocations.clear()
+                    removeAllLocationCards()
+                    isFirstLocationUpdate = true
+                    stopLocationUpdates()
+                    startLocationUpdates()
+                    Log.d("In Spinner location Updates started with", "${selectedRadius}")
+                }
+            }
+
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+                Toast.makeText(this@CameraView,"Nothing selected",Toast.LENGTH_LONG).show()
+            }
+        }
+        val showButton = findViewById<ImageButton>(R.id.showRadiusSelector)
+        val hideButton = findViewById<ImageButton>(R.id.hideRadiusSelector)
+        val spinnerLayout = findViewById<RelativeLayout>(R.id.spinnerContainer)
+        // Load slide-in and slide-out animations from XML
+        val slideIn = AnimationUtils.loadAnimation(this, R.anim.slide_in)
+        val slideOut =  AnimationUtils.loadAnimation(this, R.anim.slide_out)
+        showButton.setOnClickListener {
+            showButton.visibility = View.GONE
+            spinnerLayout.visibility = View.VISIBLE
+            spinnerLayout.startAnimation(slideIn)
+            hideButton.visibility = View.VISIBLE
         }
 
-
+        hideButton.setOnClickListener {
+            spinnerLayout.startAnimation(slideOut)
+            spinnerLayout.visibility = View.GONE
+            hideButton.visibility = View.GONE
+            showButton.visibility = View.VISIBLE
+        }
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
-        if (nearbyLocations.isNotEmpty()) {
-            // Log the contents of nearbyLocations
-            for (nearbylocation in nearbyLocations) {
-                Log.d("NearbyLocations", "Location in list: $nearbylocation")
+        val switchView = findViewById<Switch>(R.id.switchView)
+        val switchTextView = findViewById<TextView>(R.id.switchTextView)
+        val messegeTextView = findViewById<TextView>(R.id.messege)
+        val emptyTextView = findViewById<TextView>(R.id.emptyTextView)
+        var isSwitchEnabled = true // Flag to track switch enable/disable state
+
+        switchView.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (isSwitchEnabled) {
+                isSwitchEnabled = false // Disable the switch temporarily
+
+                if (isChecked) {
+                    if (isInternetAvailable()) { // Check for internet connectivity
+                        // Handle switch ON state
+                        switchView.trackTintList =
+                            ColorStateList.valueOf(ContextCompat.getColor(this, R.color.bar))
+                        switchTextView.text = "Turn off when locations are not needed"
+                        isFirstLocationUpdate = true
+                        messegeTextView.text = "Route may vary in distance"
+                        messegeTextView.visibility = View.VISIBLE
+                        Handler().postDelayed({
+                            messegeTextView.visibility = View.GONE
+                        }, 10000) // 10000 milliseconds = 10 seconds
+                        stopLocationUpdates()
+                        startLocationUpdates()
+                        Log.d("Location Updates for nearby locations", "Started")
+                    } else {
+                        // Internet is not available, prevent the switch from changing state
+                        switchView.isChecked = !isChecked
+                        messegeTextView.text = "Check your internet connection"
+                        messegeTextView.visibility = View.VISIBLE
+                        Handler().postDelayed({
+                            messegeTextView.visibility = View.GONE
+                        }, 5000) // 5000 milliseconds = 5 seconds
+                    }
+                } else {
+                    // Handle switch OFF state
+                    switchView.trackTintList =
+                        ColorStateList.valueOf(ContextCompat.getColor(this, R.color.white))
+                    switchTextView.text = "Turn on to view nearby locations"
+                    messegeTextView.visibility = View.GONE
+                    emptyTextView.visibility = View.GONE
+                    nearbyLocations.clear()
+                    removeAllLocationCards()
+                }
+
+                // Enable the switch after a delay (e.g., 2 seconds)
+                Handler().postDelayed({
+                    isSwitchEnabled = true
+                }, 2000) // 2000 milliseconds = 2 seconds
+            } else {
+                // If the switch is not enabled, revert its state back
+                switchView.isChecked = !isChecked
             }
-        } else {
-            Log.d("NearbyLocations", "Location list is empty.")
         }
 
-
         val stopDirectionsText = findViewById<View>(R.id.stopDirectionsText)
-
-//        selectDestinationImageView.setOnClickListener {
-//            // Show navigation directions here
-//
-//        }
 
         stopDirectionsText.setOnClickListener {
             // Stop navigation and reset everything here
             stopNavigationAndReset()
         }
 
+    }
+    private fun showIntroductionOverlay() {
+        val introductionOverlay = findViewById<View>(R.id.introductionOverlay)
+        introductionOverlay.visibility = View.VISIBLE
+
+        val startTourButton = introductionOverlay.findViewById<Button>(R.id.startTourButton)
+
+        startTourButton.setOnClickListener {
+            introductionOverlay.visibility = View.GONE
+
+            // Update the preference to indicate that the introduction overlay has been shown
+            val prefs = getSharedPreferences("prefs", MODE_PRIVATE)
+            val editor = prefs.edit()
+            editor.putBoolean("firstStart", false)
+            editor.apply()
+        }
     }
     override fun onResume() {
         super.onResume()
@@ -196,6 +353,15 @@ class CameraView : AppCompatActivity(), SensorEventListener {
     override fun onPause() {
         super.onPause()
         sensorManager.unregisterListener(this)
+        val switchView = findViewById<Switch>(R.id.switchView)
+        val switchTextView = findViewById<TextView>(R.id.switchTextView)
+        val messegeTextView = findViewById<TextView>(R.id.messege)
+        switchView.isChecked = false
+        switchView.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.white))
+        switchTextView.text = "Turn on to view nearby locations"
+        messegeTextView.visibility = View.GONE
+        nearbyLocations.clear()
+        removeAllLocationCards()
     }
     override fun onSensorChanged(event: SensorEvent?) {
         if (event == null) return
@@ -204,6 +370,16 @@ class CameraView : AppCompatActivity(), SensorEventListener {
             System.arraycopy(event.values, 0, accelerometerReading, 0, 3)
         } else if (event.sensor == magnetometer) {
             System.arraycopy(event.values, 0, magnetometerReading, 0, 3)
+        }
+
+        val switchView = findViewById<Switch>(R.id.switchView)
+        if (switchView.isChecked) {
+            val emptyTextView = findViewById<TextView>(R.id.emptyTextView)
+            if (nearbyLocations.isEmpty()) {
+                emptyTextView.visibility = View.VISIBLE
+            } else {
+                emptyTextView.visibility = View.GONE
+            }
         }
 
         val rotationMatrix = FloatArray(9)
@@ -220,15 +396,24 @@ class CameraView : AppCompatActivity(), SensorEventListener {
 
             // Calculate the angle based on the device's orientation
             val sensorAngle = calculateAngle(orientationValues)
-            // Calculate the angle based on the device's orientation
 
-            getAngle = sensorAngle
+            // Calculate the angle based on the device's orientation
+            // Calculate the absolute difference between sensorAngle and getAngle
+            val angleDifference = Math.abs(sensorAngle - getAngle)
+
+            // Check if the angle difference is greater than 5 degrees
+            if (angleDifference > 5f) {
+                getAngle = sensorAngle
+            }
+
             // Transform angle to be in the range [0, 360)
 //            arrowImageView.rotation = getAngle
 
-            // Update the UI with nearby locations
-            updateUIWithNearbyLocations(filteredLocations)
-
+//            if(nearByLocationsAvailable) {
+            if (nearbyLocations.isNotEmpty()) {
+                // Update the UI with nearby locations
+                updateUIWithNearbyLocations(nearbyLocations)
+            }
 
             // Smooth the rotation using a moving average
             rotationHistory.add(sensorAngle)
@@ -305,71 +490,81 @@ class CameraView : AppCompatActivity(), SensorEventListener {
             AspectRatio.RATIO_16_9
         }
     }
+    private fun requestPermission(){
+        isLocationPermissionGranted=ContextCompat.checkSelfPermission(
+            this, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        isCameraPermissionGranted=ContextCompat.checkSelfPermission(
+            this, Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
 
+        val permissionRequest = mutableListOf<String>()
+
+        if (!isLocationPermissionGranted) {
+            permissionRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+        if (!isCameraPermissionGranted) {
+            permissionRequest.add(Manifest.permission.CAMERA)
+        }
+        if (permissionRequest.isNotEmpty()) {
+            mPermissionResultLauncher.launch(permissionRequest.toTypedArray())
+        } else {
+            // Both permissions are already granted, start camera and location updates
+            startCamera(cameraFacing)
+            startLocationUpdates()
+        }
+
+    }
+    private fun showPermissionRequestDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage("This app requires camera and location permissions to function properly. Restart the app for the changes to take effect.")
+        builder.setPositiveButton("Grant Permissions") { dialog, _ ->
+            // Request the missing permission
+            requestPermission()
+            dialog.dismiss()
+        }
+        val dialog = builder.create()
+        dialog.setCancelable(false)
+        dialog.show()
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setOnClickListener {
+            // Check if permissions are granted
+            if (!isLocationPermissionGranted || !isCameraPermissionGranted) {
+                // Open the app settings
+                openAppSettings()
+            } else {
+                // Permissions are granted, close the dialog
+                dialog.dismiss()
+            }
+        }
+    }
+    private fun openAppSettings() {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        val uri = Uri.fromParts("package", packageName, null)
+        intent.data = uri
+        startActivity(intent)
+    }
     private fun hasLocationPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
             this, Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun hasBackgroundLocationPermission(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ContextCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        } else {
-            // On older Android versions, background location permission is not needed
-            true
-        }
-    }
 
-    private fun requestLocationPermission() {
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-            LOCATION_PERMISSION_REQUEST_CODE
-        )
-    }
-    private fun requestBackgroundLocationPermission() {
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf( Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_BACKGROUND_LOCATION),
-            BACKGROUND_LOCATION_PERMISSION_REQUEST_CODE
-        )
-    }
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission granted, check for background location permission
-                if (hasBackgroundLocationPermission()) {
-                    // Background location permission is granted or not needed, start location updates
-                    startLocationUpdates()
-                } else {
-                    // Request background location permission
-                    requestBackgroundLocationPermission()
-                }
-            } else {
-                // Permission denied, handle accordingly
-                // You can show a message to the user or disable location-related functionality
-            }
-        } else if (requestCode == BACKGROUND_LOCATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Background location permission granted, start location updates
-                startLocationUpdates()
-            } else {
-                // Background location permission denied, handle accordingly
-                // You can show a message to the user or disable background location-related functionality
-            }
-        }
-    }
+//    private fun requestLocationPermission() {
+//        ActivityCompat.requestPermissions(
+//            this,
+//            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+//            LOCATION_PERMISSION_REQUEST_CODE
+//        )
+//    }
+
 
     private fun startLocationUpdates() {
         if (hasLocationPermission()) {
             val locationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                 .setInterval(TIME_BETWEEN_UPDATES)
-                .setFastestInterval(MIN_TIME_BETWEEN_UPDATES)
+                .setFastestInterval(TIME_BETWEEN_UPDATES)
                 .setSmallestDisplacement(MIN_DISTANCE_CHANGE_FOR_UPDATES)
             try {
                 fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
@@ -381,27 +576,24 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         }
     }
 
-//    override fun onStop() {
-//        super.onStop()
-//        fusedLocationClient.removeLocationUpdates(locationCallback)
-//        Log.d("LocationUpdates", "Location updates stopped.")
-//    }
 
+    private fun stopLocationUpdates() {
+        // Check if the FusedLocationProviderClient and locationCallback are initialized
+        if (::fusedLocationClient.isInitialized && ::locationCallback.isInitialized) {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+            Log.d("LocationUpdates", "Location updates stopped.")
+        }
+    }
+    private fun isInternetAvailable(): Boolean {
+        val connectivityManager =
+            getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        return networkInfo != null && networkInfo.isConnected
+    }
     private fun logLocation(location: android.location.Location) {
         Log.d("LocationUpdates", "Latitude: ${location.latitude}, Longitude: ${location.longitude}")
     }
 
-    private fun getNearbyLocations(location: Location) {
-
-        val currentLatLng = LatLng(location.latitude, location.longitude)
-        // Process the current location here
-        val maxDistance = 1000.0 // Adjust the maximum distance as needed (in meters)
-        // Assuming you have a list of nearby locations stored in `nearbyLocations`
-        filteredLocations = filterNearbyLocations(currentLatLng, nearbyLocations, maxDistance)
-
-        // Pass the filtered locations to the UI update function
-        updateUIWithNearbyLocations(filteredLocations)
-    }
     private fun requestLocationAndProcessDirections(location: Location,destination:LatLng) {
         // Pass 'location' to your directions processing code here
         val currentLatLng = LatLng(location.latitude, location.longitude)
@@ -476,7 +668,7 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         val azimuth = Math.toDegrees(orientationValues[0].toDouble()).toFloat()
         return -azimuth // Invert the angle for correct rotation
     }
-    private fun angleFromCoordinate(lat1: Double, long1: Double, lat2: Double, long2: Double): Double {
+    fun angleFromCoordinate(lat1: Double, long1: Double, lat2: Double, long2: Double): Double {
         val dLon = (long2 - long1)
         val y = Math.sin(Math.toRadians(dLon)) * Math.cos(Math.toRadians(lat2))
         val x = Math.cos(Math.toRadians(lat1)) * Math.sin(Math.toRadians(lat2)) -
@@ -485,7 +677,7 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         brng = (brng + 360) % 360
         return brng
     }
-    private fun calculateDistance(start: LatLng, end: LatLng): Double {
+    fun calculateDistance(start: LatLng, end: LatLng): Double {
         // Haversine formula to calculate the distance between two LatLng points
         val radius = 6371 // Earth's radius in kilometers
         val lat1 = Math.toRadians(start.latitude)
@@ -502,69 +694,40 @@ class CameraView : AppCompatActivity(), SensorEventListener {
 
         return radius * c * 1000 // Convert to meters
     }
-    private fun filterNearbyLocations(
-        currentLocation: LatLng,
-        nearbyLocations: List<Locations>,
-        maxDistance: Double,
-    ): List<LocationInfo> {
-        val filteredLocations = mutableListOf<LocationInfo>()
 
-        for (location in nearbyLocations) {
-            val distance = calculateDistance(
-                currentLocation,
-                LatLng(location.latitude, location.longitude)
-            )
-            Log.d("Distance is", "Distance is: $distance")
-            // Check if the location is within the specified radius and angle range
-            if (distance <= maxDistance) {
-                val angle = angleFromCoordinate(
-                    currentLocation.latitude,
-                    currentLocation.longitude,
-                    location.latitude,
-                    location.longitude)
-                filteredLocations.add(LocationInfo(location, angle, distance))
-            }
-        }
-        for (filteredLocation in filteredLocations) {
-            Log.d("FilteredLocations", "Filtered Location: $filteredLocation")
-        }
-        return filteredLocations
-    }
-
-    private val locationCardViews = HashMap<LocationInfo, View>() // Initialize a HashMap
-
-    private fun updateUIWithNearbyLocations(nearbyLocations: List<LocationInfo>) {
+    private fun updateUIWithNearbyLocations(nearbyLocations: List<com.example.touraround.Location>) {
         val locationContainer = findViewById<LinearLayout>(R.id.locationContainer)
 
         // Log the details of nearbyLocations
-        for (locationInfo in nearbyLocations) {
-            Log.d("NearbyLocationInfo", "Final Location : $locationInfo")
-        }
+//        for (locationInfo in nearbyLocations) {
+//            Log.d("NearbyLocationInfo", "Final Location : $locationInfo")
+//        }
 
         val locationsToRemove = HashSet(locationCardViews.keys) // Create a copy of locations in the HashMap
 
         for (locationInfo in nearbyLocations) {
             // Get the latitude and longitude from locationInfo
-            val latitude = locationInfo.location.latitude
-            val longitude = locationInfo.location.longitude
+            val latitude = locationInfo.latitude
+            val longitude = locationInfo.longitude
             val destination = LatLng(latitude, longitude)
+
             // Calculate the angle between the current location and the target location
             val angleToLocation = locationInfo.angle
             val angleToLocatioIn360 = 360-angleToLocation
             // Log the transformed angle
-            Log.d("Angle", "Angle: $getAngle")
-            // Log the transformed angle
-            Log.d("Angle", "angleToLocation: $angleToLocatioIn360")
+//            Log.d("Angle", "Angle: $getAngle")
+           // Log the transformed angle
+//            Log.d("Angle", "Location angle: $angleToLocatioIn360  ${locationInfo.name}")
             // Calculate the difference between the current orientation angle and the angle to the location
             val angleDifference = getAngle - angleToLocatioIn360
 
             // Ensure the angle difference is in the range [0, 360)
             val normalizedAngleDifference = (angleDifference + 360) % 360
-
+//            Log.d("Angle", "Angle from current position: $normalizedAngleDifference")
             // Check if the location is within the desired angle range (e.g., ±45 degrees)
             val angleRange = 45f
             if (normalizedAngleDifference <= angleRange || normalizedAngleDifference >= 360 - angleRange) {
-                // The location is within the angle range
+
                 if (locationCardViews.containsKey(locationInfo)) {
                     // Location is already associated with a card view, so update the content
                     val cardView = locationCardViews[locationInfo]!!
@@ -572,7 +735,7 @@ class CameraView : AppCompatActivity(), SensorEventListener {
                     val tvDistance = cardView.findViewById<TextView>(R.id.tv_distance)
 
                     // Set data for the views
-                    tvTitle.text = locationInfo.location.name
+                    tvTitle.text = locationInfo.name
                     val formattedDistance = String.format("%.2f km", locationInfo.distance / 1000.0)
                     tvDistance.text = formattedDistance
 
@@ -580,23 +743,24 @@ class CameraView : AppCompatActivity(), SensorEventListener {
                     locationsToRemove.remove(locationInfo)
                 } else {
                     // Location is not associated with a card view, so create a new one
-                    val cardView = layoutInflater.inflate(R.layout.location_cardview, null)
+                    val cardView = layoutInflater.inflate(R.layout.location_cardview_middle, null)
                     val tvTitle = cardView.findViewById<TextView>(R.id.tv_title)
                     val tvDistance = cardView.findViewById<TextView>(R.id.tv_distance)
 
                     // Set data for the views
-                    tvTitle.text = locationInfo.location.name
+                    tvTitle.text = locationInfo.name
                     val formattedDistance = String.format("%.2f km", locationInfo.distance / 1000.0)
                     tvDistance.text = formattedDistance
+
                     // Add an OnClickListener to the card view
                     cardView.setOnClickListener {
-                        // Handle the click event here
-                        // You can perform any action when the card view is clicked
-                        // For example, open a detail view for the location
-                        // Replace the following code with your desired action
-                        Toast.makeText(this, "Card clicked for ${locationInfo.location.name}", Toast.LENGTH_SHORT).show()
-                        showNavigationDirections(destination)
+                        Toast.makeText(this, "Card clicked for ${locationInfo.name}", Toast.LENGTH_SHORT).show()
+                        // Remove the card view from the UI
+                        locationContainer.removeView(cardView)
+                        showPopupDialog(locationInfo,destination)
+//                        showNavigationDirections(destination)
                     }
+
                     // Add the card view to the UI
                     locationContainer.addView(cardView)
 
@@ -731,6 +895,11 @@ class CameraView : AppCompatActivity(), SensorEventListener {
     private fun showNavigationDirections(destination:LatLng) {
         val location = currentLocation // Assign currentLocation to a local variable
         if (location != null) {
+            val switchBar = findViewById<LinearLayout>(R.id.switchBar)
+            switchBar.visibility = View.INVISIBLE
+//            nearByLocationsAvailable=false
+            nearbyLocations.clear()
+            removeAllLocationCards()
             val showOverlayButton = findViewById<ImageButton>(R.id.showOverlayButton)
             val hideOverlayButton = findViewById<ImageButton>(R.id.hideOverlayButton)
             val overlayLayout = findViewById<View>(R.id.layout_overlay_navigation)
@@ -769,6 +938,8 @@ class CameraView : AppCompatActivity(), SensorEventListener {
     }
 
     private fun stopNavigationAndReset() {
+        val switchBar = findViewById<LinearLayout>(R.id.switchBar)
+        switchBar.visibility = View.VISIBLE
         // Implement your code to stop navigation and reset everything here
         val stopDirectionsText = findViewById<View>(R.id.stopDirectionsText)
         val showOverlayButton = findViewById<ImageButton>(R.id.showOverlayButton)
@@ -800,6 +971,93 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         val textViewRemainingTotalDistance = findViewById<TextView>(R.id.textRemainingTotalDistance)
         textViewRemainingDistance.text = ""
         textViewRemainingTotalDistance.text = ""
+    }
+    private fun removeAllLocationCards() {
+        val locationContainer = findViewById<LinearLayout>(R.id.locationContainer)
+
+        // Remove all child views (cards) from the locationContainer
+        locationContainer.removeAllViews()
+
+        // Clear the locationCardViews HashMap
+        locationCardViews.clear()
+    }
+    // Define a function to show the popup dialog
+    fun showPopupDialog(locationInfo: com.example.touraround.Location,destination:LatLng) {
+        // Create a custom dialog
+        val dialog = Dialog(this)
+
+        // Set the custom layout for the dialog
+        dialog.setContentView(R.layout.location_popup)
+
+        // Set the width of the dialog to match the parent's width
+        val layoutParams = WindowManager.LayoutParams()
+        layoutParams.copyFrom(dialog.window?.attributes)
+        layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT
+        dialog.window?.attributes = layoutParams
+
+        // Find views in the custom layout
+        val tvTitle = dialog.findViewById<TextView>(R.id.tv_title)
+        val tvDistance = dialog.findViewById<TextView>(R.id.tv_distance)
+        val ratingBar  = dialog.findViewById<RatingBar>(R.id.ratingBar)
+        val ratingText  = dialog.findViewById<TextView>(R.id.ratingText)
+
+        // Find ViewPager2 in the custom layout
+        val viewPager = dialog.findViewById<ViewPager2>(R.id.viewPager)
+
+        // Assuming you have a list of photo references in locationInfo.photoReferences
+        val photoReferences = locationInfo.photoReferences
+
+        // Create an adapter to populate ViewPager2 with images
+        val adapter = PhotoPagerAdapter(photoReferences)
+        // Iterate through the photo references and log each one
+        for (photoReference in photoReferences) {
+            Log.d("Photo Reference", photoReference)
+        }
+        // Set the adapter to the ViewPager2
+        viewPager.adapter = adapter
+
+        // Check if photoReferences is empty and set the placeholder image if needed
+        if (photoReferences.isEmpty()) {
+            // Assuming viewPager is your ViewPager2 instance, you should set a placeholder drawable directly
+            viewPager.background = ContextCompat.getDrawable(this, R.drawable.error_placeholder)
+        }
+
+        // Populate the views with data from the clicked card
+        tvTitle.text = locationInfo.name
+        val formattedDistance = String.format("%.2f km", locationInfo.distance / 1000.0)
+        tvDistance.text = formattedDistance
+        val rating =  locationInfo.rating// Replace this with your actual Double value
+        ratingBar.rating = rating.toFloat()
+        ratingText.text="Users : ("+locationInfo.userRatingsTotal.toString()+")"
+        dialog.show()
+        // Find the button view and set an OnClickListener
+        val closePopUp = dialog.findViewById<ImageView>(R.id.closePopUp)
+        closePopUp.setOnClickListener {
+            dialog.dismiss()
+        }
+        val switchView = findViewById<Switch>(R.id.switchView)
+        val switchTextView = findViewById<TextView>(R.id.switchTextView)
+        val messegeTextView = findViewById<TextView>(R.id.messege)
+        // Find the button view and set an OnClickListener
+        val buttonGetNavigations = dialog.findViewById<Button>(R.id.buttonGetNavigations)
+        buttonGetNavigations.setOnClickListener {
+            if (isInternetAvailable()) { // Check for internet connectivity
+                showNavigationDirections(destination)
+                switchView.isChecked = false
+                switchView.trackTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.white))
+                switchTextView.text = "Turn on to view nearby locations"
+                messegeTextView.visibility = View.GONE
+                dialog.dismiss()
+            } else {
+                val messegeTextView = findViewById<TextView>(R.id.messege)
+                messegeTextView.text = "Check your internet conneection"
+                messegeTextView.visibility = View.VISIBLE
+                Handler().postDelayed({
+                    messegeTextView.visibility = View.GONE
+                }, 5000) // 10000 milliseconds = 10 seconds
+            }
+
+        }
     }
 
 }

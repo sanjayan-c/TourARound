@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Other views or components can be added here -->
+
+    <ImageButton
+        android:id="@+id/showRadiusSelector"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/arrow_right"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="?attr/selectableItemBackgroundBorderless"/>
+
+    <RelativeLayout
+        android:id="@+id/spinnerContainer"
+        android:layout_width="85dp"
+        android:layout_height="25dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="10sp"
+        android:visibility="gone"
+        app:layout_constraintStart_toEndOf="@+id/showRadiusSelector"
+        app:layout_constraintEnd_toStartOf="@+id/hideRadiusSelector"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <Spinner
+            android:id="@+id/radiusSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:layout_centerVertical="true"
+            android:background="@color/white"
+            android:entries="@array/radius_options" />
+
+        <ImageView
+            android:id="@+id/dropdownIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/arrow_down"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="5dp" />
+
+    </RelativeLayout>
+
+
+
+    <ImageButton
+        android:id="@+id/hideRadiusSelector"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/arrow_left"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/spinnerContainer"
+        android:background="?attr/selectableItemBackgroundBorderless"/>
+
+    <!-- Other views or components can be added here -->
+
+</androidx.constraintlayout.widget.ConstraintLayout>

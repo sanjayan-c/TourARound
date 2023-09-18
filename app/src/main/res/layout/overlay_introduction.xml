@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/overlayLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:elevation="10dp"
+    android:background="#80000000"
+    android:clickable="true">
+
+    <!-- Explanatory Text for Stitch Bar -->
+    <TextView
+        android:id="@+id/swtitchBarExplanatoryText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:layout_marginRight="10dp"
+        android:layout_centerHorizontal="true"
+        android:text="Turn on to view nearest tourist attractions"
+        android:textColor="#FFFFFF"
+        android:layout_toStartOf="@id/arrowSwtitchBar"/>
+    <!-- Arrow for Stitch Bar -->
+    <ImageView
+        android:id="@+id/arrowSwtitchBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/swtitchBarExplanatoryText"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="50dp"
+        android:src="@drawable/arrow_point_right"
+        android:contentDescription="Arrow" />
+    <!-- Explanatory Arrow for Radius -->
+    <ImageView
+        android:id="@+id/arrowSetRadius"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:src="@drawable/arrow_point_bottom"
+        android:contentDescription="Arrow"
+        android:layout_marginTop="130dp"
+        android:rotation="270"
+        android:layout_marginStart="-25dp" />
+    <!-- Explanatory Text for Radius -->
+    <TextView
+        android:id="@+id/textSetRadiusIntro"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Set the radius to search locations"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="15dp"
+        android:layout_marginStart="15dp"
+        android:layout_below="@id/arrowSetRadius"/>
+    <!-- Explanatory Text for Flashlight -->
+    <TextView
+        android:id="@+id/flashlightExplanatoryText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:layout_marginRight="10dp"
+        android:text="Click here to turn on flash light"
+        android:layout_below="@id/swtitchBarExplanatoryText"
+        android:textColor="#FFFFFF"
+        android:layout_toStartOf="@id/arrowFlashLight"/>
+    <!-- Arrow for Flashlight -->
+    <ImageView
+        android:id="@+id/arrowFlashLight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/flashlightExplanatoryText"
+        android:layout_alignParentEnd="true"
+        android:src="@drawable/arrow_point_right"
+        android:layout_marginEnd="50dp"
+        android:contentDescription="Arrow" />
+    <!-- Explanatory Text for Translate -->
+    <TextView
+        android:id="@+id/translateExplanatoryText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/flashlightExplanatoryText"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="95dp"
+        android:layout_marginRight="10dp"
+        android:text="Click here to translate"
+        android:textColor="#FFFFFF"
+        android:layout_toStartOf="@id/arrowTranslate2"/>
+    <!-- Arrow for Translate -->
+    <ImageView
+        android:id="@+id/arrowTranslate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="10dp"
+        android:layout_marginTop="190dp"
+        android:rotation="270"
+        android:src="@drawable/arrow_point_right"
+        android:contentDescription="Arrow" />
+    <ImageView
+        android:id="@+id/arrowTranslate1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/arrowTranslate"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="-10dp"
+        android:rotation="90"
+        android:layout_marginEnd="10dp"
+        android:src="@drawable/horizontal_line"
+        android:contentDescription="Arrow" />
+    <ImageView
+        android:id="@+id/arrowTranslate2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toStartOf="@id/arrowTranslate"
+        android:layout_below="@id/arrowTranslate"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="-2dp"
+        android:layout_marginEnd="17dp"
+        android:src="@drawable/horizontal_line"
+        android:contentDescription="Arrow" />
+    <!-- Explanatory Text for Translate -->
+    <TextView
+        android:id="@+id/startExplanatoryText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/arrowStartButton"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="30dp"
+        android:text="Start your tour"
+        android:textColor="#FFFFFF" />
+
+    <!-- Arrow for Button -->
+    <ImageView
+        android:id="@+id/arrowStartButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/startTourButton"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/arrow_point_bottom"
+        android:contentDescription="Arrow"
+        android:layout_marginBottom="20dp"
+        android:rotation="90" />
+    <!-- Centered TextView -->
+    <ImageView
+        android:id="@+id/yourImageView"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:src="@drawable/phone_posture"
+    android:layout_above="@id/centeredTextView" />
+    <TextView
+        android:id="@+id/centeredTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="Don't tilt the screen down"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/centeredTextView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:text="Hold phone straight, angle slightly up for accuracy"
+        android:layout_below="@+id/centeredTextView"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+    <!-- Start Tour Button -->
+    <Button
+        android:id="@+id/startTourButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="50dp"
+        android:layout_marginEnd="50dp"
+        android:layout_marginBottom="50dp"
+        android:background="@drawable/round_style"
+        android:backgroundTint="@color/bar"
+        android:padding="10dp"
+        android:text="Start Tour"
+        android:textColor="@android:color/white" />
+</RelativeLayout>
