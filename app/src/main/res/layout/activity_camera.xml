@@ -75,6 +75,22 @@
         android:layout_marginBottom="10sp"
         android:src="@drawable/translate"
         app:tint="#fff" />
+    <ImageButton
+        android:id="@+id/objectdetect"
+        android:layout_width="60sp"
+        android:layout_height="60sp"
+        android:layout_marginStart="300sp"
+        android:layout_marginTop="75sp"
+        android:layout_marginEnd="10sp"
+        android:layout_marginBottom="10sp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/object_search_24"
+        app:tint="#fff" />
+    <FrameLayout
+        android:id="@+id/camera_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"/>
 
     <include
         layout="@layout/layout_overlay_arrow"
