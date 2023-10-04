@@ -5,6 +5,12 @@ plugins {
 }
 
 android {
+    packagingOptions {
+        resources {
+            excludes.add("META-INF/INDEX.LIST")
+            excludes.add("META-INF/DEPENDENCIES")
+        }
+    }
     namespace = "com.example.touraround"
     compileSdk = 33
 //
@@ -46,6 +52,8 @@ dependencies {
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("com.google.firebase:firebase-functions-ktx:20.3.1")
+    implementation("com.google.firebase:firebase-database-ktx:20.2.2")
+    implementation("com.google.firebase:firebase-auth-ktx:22.1.2")
     //  implementation("com.google.firebase:firebase-ml-vision:24.1.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -61,8 +69,13 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.3.1"))
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation ("com.google.firebase:firebase-ml-vision:24.0.3")
-    implementation ("com.google.mlkit:text-recognition:16.0.0")
-    implementation ("com.google.mlkit:translate:17.0.1")
+    implementation("com.google.firebase:firebase-functions:20.3.1")
+    implementation("com.google.code.gson:gson:2.8.6")// Import the BoM for the Firebase platformx`
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.cloud:google-cloud-translate:2.3.0")
+//    implementation ("com.google.mlkit:text-recognition:16.0.0")
+//    implementation ("com.google.mlkit:translate:17.0.1")
 
 
 

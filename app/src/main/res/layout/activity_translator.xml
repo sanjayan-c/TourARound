@@ -1,68 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <!-- Camera Preview -->
+
     <androidx.camera.view.PreviewView
-        android:id="@+id/viewFinder"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:id="@+id/viewfinder"
+        android:layout_width="411dp"
+        android:layout_height="319dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent="0.5"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"></androidx.camera.view.PreviewView>
 
-
-    </androidx.camera.view.PreviewView>
-
-    <!-- Captured Image View -->
     <ImageView
         android:id="@+id/capturedImageView"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true"
-        android:visibility="gone" />
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:visibility="gone"/>
 
 
-    <!-- Capture Button -->
-    <Button
-        android:id="@+id/captureButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true"
-        android:text="Capture"
-        android:onClick="captureImage" />
-
-    <!-- OCR Text Field -->
-<!--    <EditText-->
-<!--        android:id="@+id/_field"-->
-<!--        android:layout_width="168dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_alignParentTop="true"-->
-<!--        android:layout_centerHorizontal="true"-->
-<!--        android:layout_marginTop="16dp"-->
-<!--        android:hint="Recognized text"-->
-<!--        android:textSize="18sp" />-->
+    <!-- Captured Image View -->
 
     <!-- Recognized Text View -->
+    <!-- Inside your layout file (e.g., activity_main.xml) -->
+
+    <!-- Capture Button -->
+
+
+    <Spinner
+        android:id="@+id/languageSpinner"
+        android:layout_width="138dp"
+        android:layout_height="43dp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.089"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/viewfinder" />
+
     <TextView
-        android:id="@+id/recognizedTextView"
-        android:layout_width="168dp"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
-        android:hint="Recognized text"
-        android:textSize="18sp" />
+        android:id="@+id/transTextView"
+        android:layout_width="214dp"
+        android:layout_height="83dp"
+        android:layout_above="@+id/recognizedTextViewScroll"
+        android:layout_marginBottom="80dp"
+        android:padding="16dp"
+        android:text="Translated text"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.51"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/viewfinder"
+        app:layout_constraintVertical_bias="1.0" />
 
-<!--    <Button-->
-<!--        android:id="@+id/logButton"-->
-<!--        android:layout_width="168dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_alignParentTop="true"-->
-<!--        android:layout_centerHorizontal="true"-->
-<!--        android:layout_marginTop="50dp"-->
-<!--        android:hint="Recognized text"-->
-<!--        android:text="Log Event" />-->
+    <ScrollView
+        android:id="@+id/recognizedTextViewScroll"
+        android:layout_width="212dp"
+        android:layout_height="57dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/captureButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.489"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/viewfinder"
+        app:layout_constraintVertical_bias="0.263">
 
-</RelativeLayout>
+        <!-- Recognized Text TextView -->
+        <TextView
+            android:id="@+id/recognizedTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:text="Recognized text"
+            android:textSize="18sp" />
+    </ScrollView>
+
+    <Button
+        android:id="@+id/captureButton"
+        android:layout_width="106dp"
+        android:layout_height="41dp"
+        android:layout_marginBottom="16dp"
+        android:onClick="captureImage"
+        android:text="Capture"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
