@@ -1,90 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
 
     <!-- Camera Preview -->
-
     <androidx.camera.view.PreviewView
         android:id="@+id/viewfinder"
-        android:layout_width="411dp"
-        android:layout_height="319dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHeight_percent="0.5"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"></androidx.camera.view.PreviewView>
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintHeight_percent="0.5" />
 
     <ImageView
         android:id="@+id/capturedImageView"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="0dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHeight_percent="0.5"
+        app:layout_constraintTop_toTopOf="@id/viewfinder"
+        app:layout_constraintBottom_toBottomOf="@id/viewfinder"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:visibility="gone"/>
-
-
-    <!-- Captured Image View -->
+        app:layout_constraintEnd_toEndOf="parent"
+        android:visibility="gone"
+        android:scaleType="centerCrop"/>
 
     <!-- Recognized Text View -->
-    <!-- Inside your layout file (e.g., activity_main.xml) -->
 
-    <!-- Capture Button -->
-
-
-    <Spinner
-        android:id="@+id/languageSpinner"
-        android:layout_width="138dp"
-        android:layout_height="43dp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.089"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/viewfinder" />
-
-    <TextView
-        android:id="@+id/transTextView"
-        android:layout_width="214dp"
-        android:layout_height="83dp"
-        android:layout_above="@+id/recognizedTextViewScroll"
-        android:layout_marginBottom="80dp"
-        android:padding="16dp"
-        android:text="Translated text"
-        android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.51"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/viewfinder"
-        app:layout_constraintVertical_bias="1.0" />
+    <!-- Translated Text View -->
 
     <ScrollView
         android:id="@+id/recognizedTextViewScroll"
-        android:layout_width="212dp"
-        android:layout_height="57dp"
-        android:layout_marginTop="8dp"
+        android:layout_width="385dp"
+        android:layout_height="82dp"
         app:layout_constraintBottom_toTopOf="@+id/captureButton"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.489"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/viewfinder"
-        app:layout_constraintVertical_bias="0.263">
+        app:layout_constraintTop_toTopOf="@+id/viewfinder"
+        app:layout_constraintVertical_bias="0.748"
+        app:layout_constraintHorizontal_bias="0.0">
 
-        <!-- Recognized Text TextView -->
         <TextView
             android:id="@+id/recognizedTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp"
             android:text="Recognized text"
-            android:textSize="18sp" />
+            android:textSize="18sp"
+            android:textColor="@android:color/black"
+            android:backgroundTint="@android:color/black" /> <!-- Set text color to black -->
     </ScrollView>
 
+    <ScrollView
+        android:id="@+id/transTextViewScroll"
+        android:layout_width="400dp"
+        android:layout_height="77dp"
+        app:layout_constraintBottom_toTopOf="@+id/captureButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/languageSpinner"
+        app:layout_constraintVertical_bias="0.742">
+
+        <TextView
+            android:id="@+id/transTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:text="Translated text"
+            android:textSize="18sp"
+            android:textColor="@android:color/black"
+            android:backgroundTint="@android:color/black" /> <!-- Set text color to black -->
+    </ScrollView>
+
+    <!-- Capture Button -->
     <Button
         android:id="@+id/captureButton"
         android:layout_width="106dp"
@@ -94,7 +86,18 @@
         android:text="Capture"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Language Spinner -->
+    <Spinner
+        android:id="@+id/languageSpinner"
+        android:layout_width="138dp"
+        android:layout_height="43dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:textColor="@android:color/black"
+        app:layout_constraintHorizontal_bias="0.058"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/viewfinder" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
