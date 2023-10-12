@@ -113,6 +113,9 @@ class CameraView : AppCompatActivity(), SensorEventListener {
     private var isCameraPermissionGranted = false
     private var isLocationPermissionGranted = false
 
+
+    private lateinit var Translator2: ImageView
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
@@ -160,6 +163,14 @@ class CameraView : AppCompatActivity(), SensorEventListener {
                 .addToBackStack(null) // Optional: Add to the back stack if needed
                 .commit()
         }
+
+        Translator2=findViewById(R.id.translate)
+        Translator2.setOnClickListener {
+            val intent = Intent(this@CameraView, Translator::class.java)
+            startActivity(intent)
+            finish()
+        }
+
 
 
 

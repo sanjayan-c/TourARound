@@ -45,6 +45,11 @@
             android:exported="true"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".Translator"
+            android:exported="true"
+            android:screenOrientation="portrait" />
+
+        <activity
             android:name=".SplashActivity"
             android:exported="true"
             android:screenOrientation="portrait">
