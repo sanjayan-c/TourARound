@@ -4,9 +4,11 @@
     <color name="white">#FFFFFFFF</color>
     <color name="my_status_bar_color">#FF000000</color>
     <color name="bar">#5DC3F1</color>
-    <color name="bounding_box_color">#5DC3F1</color>
+    <color name="bounding_box_color">#3288AF</color>
     <color name="toolbar_background">#EEEEEE</color>
     <color name="ic_launcher_background">#FFFFFF</color>
     <color name="bottom_sheet_background">#EEEEEE</color>
+    <color name="edit_color">#63BD67</color>
+    <color name="delete_color">#CD3227</color>
     <color name="bottom_sheet_text_color">@android:color/black</color>
 </resources>
