@@ -74,6 +74,8 @@ class CameraView : AppCompatActivity(), SensorEventListener {
     private var cameraFacing = CameraSelector.LENS_FACING_BACK
     private var camera: Camera? = null
     private var isFlashOn = false // Track the flashlight state
+    private lateinit var objectDetection: ImageButton
+    private lateinit var favLocation: ImageButton
 
     private lateinit var locationCallback: LocationCallback
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -136,6 +138,30 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         toggleFlash.setOnClickListener {
             toggleFlashIcon()
         }
+        objectDetection=findViewById<ImageButton>(R.id.objectdetect)
+        objectDetection.setOnClickListener {
+            // Create an instance of the CameraWithObject fragment
+            val cameraFragment = CameraWithObject()
+
+            // Load the CameraWithObject fragment into the camera_container
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.camera_container, cameraFragment)
+                .addToBackStack(null) // Optional: Add to back stack if needed
+                .commit()
+        }
+        favLocation = findViewById<ImageButton>(R.id.favlocation)
+        favLocation.setOnClickListener {
+            // Create an instance of the LocationList fragment
+            val locationListFragment = LocationList()
+
+            // Load the LocationList fragment into the camera_container
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.camera_container, locationListFragment)
+                .addToBackStack(null) // Optional: Add to the back stack if needed
+                .commit()
+        }
+
+
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
