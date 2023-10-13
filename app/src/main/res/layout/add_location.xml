@@ -24,6 +24,17 @@
             android:background="@drawable/border"
             android:padding="20dp">
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:id="@+id/currentLoc"
+                android:background="@drawable/border"
+                android:layout_marginTop="20dp"
+                android:padding="16dp"
+                android:maxLines="1"
+                android:gravity="start|center_vertical"
+                android:textColor="@color/bar"/>
+
             <EditText
                 android:layout_width="match_parent"
                 android:layout_height="60dp"

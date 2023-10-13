@@ -48,6 +48,10 @@
             android:name=".Translator"
             android:exported="true"
             android:screenOrientation="portrait" />
+      <activity
+            android:name=".LocationList"
+            android:exported="true"
+            android:screenOrientation="portrait" />
 
         <activity
             android:name=".SplashActivity"
@@ -59,6 +63,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".CameraWithObject"
+            android:exported="true"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>
