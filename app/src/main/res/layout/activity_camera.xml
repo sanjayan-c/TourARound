@@ -37,6 +37,17 @@
         android:layout_width="match_parent"
         android:layout_below="@id/switchBar"/>
     <!-- TextView for the "Stop directions" text -->
+    <ImageButton
+        android:id="@+id/favlocation"
+        android:layout_width="40sp"
+        android:layout_height="40sp"
+        android:layout_marginStart="0sp"
+        android:layout_marginTop="130sp"
+        android:layout_marginEnd="50sp"
+        android:layout_marginBottom="10sp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/add_location"
+        app:tint="#fff" />
     <TextView
         android:id="@+id/stopDirectionsText"
         android:layout_width="200sp"
@@ -77,29 +88,15 @@
         app:tint="#fff" />
     <ImageButton
         android:id="@+id/objectdetect"
-        android:layout_width="70sp"
-        android:layout_height="70sp"
-        android:layout_marginStart="300sp"
-        android:layout_marginTop="75sp"
+        android:layout_width="40sp"
+        android:layout_height="40sp"
+        android:layout_marginStart="310sp"
+        android:layout_marginTop="90sp"
         android:layout_marginEnd="10sp"
         android:layout_marginBottom="10sp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@drawable/object_search_24"
         app:tint="#fff" />
-
-
-    <ImageButton
-        android:id="@+id/favlocation"
-        android:layout_width="70sp"
-        android:layout_height="70sp"
-        android:layout_marginStart="250sp"
-        android:layout_marginTop="75sp"
-        android:layout_marginEnd="30sp"
-        android:layout_marginBottom="10sp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/add_location"
-        app:tint="#fff" />
-
 
     <include
         layout="@layout/layout_overlay_arrow"

@@ -141,12 +141,16 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         objectDetection = findViewById<ImageButton>(R.id.objectdetect)
         objectDetection.setOnClickListener {
             val intent = Intent(this, CameraWithObject::class.java)
+            finish()
             startActivity(intent)
+
         }
+
 
         favLocation = findViewById<ImageButton>(R.id.favlocation)
         favLocation.setOnClickListener {
             val intent = Intent(this, LocationList::class.java)
+            intent.putExtra("CurrentLocation", currentLocation)
             startActivity(intent)
         }
 

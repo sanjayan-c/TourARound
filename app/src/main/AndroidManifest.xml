@@ -44,6 +44,10 @@
             android:name=".CameraView"
             android:exported="true"
             android:screenOrientation="portrait" />
+        <activity
+            android:name=".LocationList"
+            android:exported="true"
+            android:screenOrientation="portrait" />
 
         <activity
             android:name=".SplashActivity"
