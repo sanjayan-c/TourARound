@@ -113,6 +113,9 @@ class CameraView : AppCompatActivity(), SensorEventListener {
     private var isCameraPermissionGranted = false
     private var isLocationPermissionGranted = false
 
+
+    private lateinit var Translator2: ImageView
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
@@ -146,7 +149,6 @@ class CameraView : AppCompatActivity(), SensorEventListener {
 
         }
 
-
         favLocation = findViewById<ImageButton>(R.id.favlocation)
         favLocation.setOnClickListener {
             val intent = Intent(this, LocationList::class.java)
@@ -154,6 +156,12 @@ class CameraView : AppCompatActivity(), SensorEventListener {
             startActivity(intent)
         }
 
+        Translator2=findViewById(R.id.translate)
+        Translator2.setOnClickListener {
+            val intent = Intent(this@CameraView, Translator::class.java)
+            startActivity(intent)
+            finish()
+        }
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 // Handle location updates here
