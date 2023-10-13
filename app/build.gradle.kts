@@ -4,6 +4,12 @@ plugins {
 }
 
 android {
+    packagingOptions {
+        resources {
+            excludes.add("META-INF/INDEX.LIST")
+            excludes.add("META-INF/DEPENDENCIES")
+        }
+    }
     namespace = "com.example.touraround"
     compileSdk = 33
 

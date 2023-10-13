@@ -138,30 +138,17 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         toggleFlash.setOnClickListener {
             toggleFlashIcon()
         }
-        objectDetection=findViewById<ImageButton>(R.id.objectdetect)
+        objectDetection = findViewById<ImageButton>(R.id.objectdetect)
         objectDetection.setOnClickListener {
-            // Create an instance of the CameraWithObject fragment
-            val cameraFragment = CameraWithObject()
-
-            // Load the CameraWithObject fragment into the camera_container
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.camera_container, cameraFragment)
-                .addToBackStack(null) // Optional: Add to back stack if needed
-                .commit()
+            val intent = Intent(this, CameraWithObject::class.java)
+            startActivity(intent)
         }
+
         favLocation = findViewById<ImageButton>(R.id.favlocation)
         favLocation.setOnClickListener {
-            // Create an instance of the LocationList fragment
-            val locationListFragment = LocationList()
-
-            // Load the LocationList fragment into the camera_container
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.camera_container, locationListFragment)
-                .addToBackStack(null) // Optional: Add to the back stack if needed
-                .commit()
+            val intent = Intent(this, LocationList::class.java)
+            startActivity(intent)
         }
-
-
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {

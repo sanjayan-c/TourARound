@@ -86,11 +86,7 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@drawable/object_search_24"
         app:tint="#fff" />
-    <FrameLayout
-        android:id="@+id/camera_container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center"/>
+
 
     <ImageButton
         android:id="@+id/favlocation"
@@ -104,11 +100,7 @@
         android:src="@drawable/add_location"
         app:tint="#fff" />
 
-    <FrameLayout
-        android:id="@+id/favlocation_container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center"/>
+
     <include
         layout="@layout/layout_overlay_arrow"
         android:layout_width="164dp"
