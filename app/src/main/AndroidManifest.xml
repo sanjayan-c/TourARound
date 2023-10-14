@@ -57,6 +57,10 @@
             android:name=".LocationList"
             android:exported="true"
             android:screenOrientation="portrait" />
+       <activity
+            android:name=".EditLocationActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".SplashActivity"
             android:exported="true"

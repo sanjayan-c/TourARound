@@ -18,64 +18,57 @@
         <TextView
             android:layout_width="120dp"
             android:layout_height="30dp"
-            android:id="@+id/recTitle"
+            android:id="@+id/locTitle"
             android:text="Title"
-            android:textColor="@color/bar"
+            android:textColor="@color/white"
             android:textSize="20sp"
             android:layout_marginTop="20dp"
             android:layout_marginStart="20dp" />
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/delete"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_gravity="center"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="10dp"
             android:layout_marginTop="25dp"
-            android:layout_marginEnd="20dp"
+            android:layout_marginEnd="30dp"
             android:layout_marginBottom="20dp"
-            android:backgroundTint="@color/delete_color"
-            app:tint="@color/white"
             android:src="@drawable/baseline_delete"/>
 
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fab2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
+        <ImageView
+            android:id="@+id/editLoc"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_gravity="center"
+            android:layout_alignParentEnd="true"
             android:layout_marginStart="10dp"
             android:layout_marginTop="25dp"
-            android:layout_marginEnd="80dp"
+            android:layout_marginEnd="70dp"
             android:layout_marginBottom="20dp"
-            android:backgroundTint="@color/edit_color"
-            app:tint="@color/white"
             android:src="@drawable/baseline_mode_edit"/>
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fab3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_gravity="center"
-            android:layout_marginStart="20dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="10dp"
             android:layout_marginTop="25dp"
-            android:layout_marginEnd="140dp"
+            android:layout_marginEnd="100dp"
             android:layout_marginBottom="20dp"
-            android:backgroundTint="@color/bar"
-            app:tint="@color/white"
-            android:src="@drawable/arrow"/>
+            android:src="@drawable/baseline_arrow"/>
+
 
         <TextView
             android:layout_width="140dp"
             android:layout_height="wrap_content"
-            android:id="@+id/recDesc"
+            android:id="@+id/locDesc"
             android:text="desc"
-            android:textColor="@color/bar"
+            android:textColor="@color/white"
             android:textSize="14sp"
-            android:layout_below="@id/recTitle"
+            android:layout_below="@id/locTitle"
             android:layout_marginStart="20dp"
             android:maxLines="1"
             android:layout_marginBottom="12dp"/>

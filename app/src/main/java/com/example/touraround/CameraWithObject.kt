@@ -1,6 +1,7 @@
 package com.example.touraround
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -8,6 +9,8 @@ import android.util.Log
 import android.view.SurfaceView
 import android.view.View
 import android.widget.AdapterView
+import android.widget.Button
+import android.widget.ImageButton
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -40,6 +43,7 @@ class CameraWithObject : AppCompatActivity(), ObjectDetectorHelper.DetectorListe
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
     private lateinit var gpuDelegate: GpuDelegate
+    private lateinit var backButton: ImageButton
 
     /** Blocking camera operations are performed using this executor */
     private lateinit var cameraExecutor: ExecutorService
@@ -96,6 +100,14 @@ class CameraWithObject : AppCompatActivity(), ObjectDetectorHelper.DetectorListe
         }
         // Attach listeners to UI control widgets
         initBottomSheetControls()
+
+        backButton = findViewById<ImageButton>(R.id.backbtn)
+        backButton.setOnClickListener {
+            // Handle the click event (e.g., navigate to a previous screen)
+            val intent = Intent(this, CameraView::class.java)
+            startActivity(intent)
+            finish()
+        }
     }
 
     private fun initBottomSheetControls() {
