@@ -25,40 +25,45 @@
             android:layout_marginTop="20dp"
             android:layout_marginStart="20dp" />
 
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+        <ImageButton
+            android:id="@+id/deleteLoc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="10dp"
             android:layout_marginTop="25dp"
             android:layout_marginEnd="30dp"
             android:layout_marginBottom="20dp"
-            android:src="@drawable/baseline_delete"/>
+            android:src="@drawable/baseline_delete"
+            android:background="@android:color/transparent"/>
 
 
-        <ImageView
+        <ImageButton
             android:id="@+id/editLoc"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="10dp"
             android:layout_marginTop="25dp"
-            android:layout_marginEnd="70dp"
+            android:layout_marginEnd="65dp"
             android:layout_marginBottom="20dp"
-            android:src="@drawable/baseline_mode_edit"/>
+            android:src="@drawable/baseline_mode_edit"
+            android:background="@android:color/transparent" />
 
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+        <ImageButton
+            android:id="@+id/directionLoc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="10dp"
             android:layout_marginTop="25dp"
             android:layout_marginEnd="100dp"
             android:layout_marginBottom="20dp"
-            android:src="@drawable/baseline_arrow"/>
+            android:src="@drawable/baseline_directions_24"
+            android:background="@android:color/transparent"/>
 
 
         <TextView
