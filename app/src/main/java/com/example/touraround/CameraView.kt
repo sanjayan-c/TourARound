@@ -20,6 +20,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.provider.Settings
+import android.telephony.SmsManager
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
@@ -31,6 +32,7 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.PopupMenu
 import android.widget.RatingBar
 import android.widget.RelativeLayout
 import android.widget.Spinner
@@ -47,6 +49,7 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.example.touraround.Adapter.PhotoPagerAdapter
@@ -56,6 +59,11 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.google.maps.model.DirectionsLeg
 import com.google.maps.model.DirectionsResult
 import com.google.maps.model.DirectionsStep
@@ -63,13 +71,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
+import kotlin.math.sin
 
 
 class CameraView : AppCompatActivity(), SensorEventListener {
     private lateinit var toggleFlash: ImageButton
+    private lateinit var emergencyLocation: ImageButton
     private lateinit var previewView: PreviewView
     private var cameraFacing = CameraSelector.LENS_FACING_BACK
     private var camera: Camera? = null
@@ -112,8 +123,8 @@ class CameraView : AppCompatActivity(), SensorEventListener {
 
     private var isCameraPermissionGranted = false
     private var isLocationPermissionGranted = false
-
-
+    private var firstStart: Boolean = true // Declare firstStart as a class property
+    private lateinit var userAuth: FirebaseAuth
     private lateinit var Translator2: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -122,17 +133,131 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         setContentView(R.layout.activity_camera)
 
         // Check if the introduction overlay has been shown before
-        val sharedPreferences: SharedPreferences = getSharedPreferences("prefs",MODE_PRIVATE)
-        val firstStart = sharedPreferences.getBoolean("firstStart",true)
+        val sharedPreferences: SharedPreferences = getSharedPreferences("prefs", MODE_PRIVATE)
+
+        // Retrieve the value of firstStart from SharedPreferences
+        firstStart = sharedPreferences.getBoolean("firstStart", true)
 
         if (firstStart) {
             // Show the introduction overlay
+            Log.d("FirstStart", "Showing Introduction Overlay")
             showIntroductionOverlay()
+
+            // Set "firstStart" to false to indicate that the overlay has been shown
+            val editor: SharedPreferences.Editor = sharedPreferences.edit()
+            editor.putBoolean("firstStart", false)
+            editor.apply()
+        } else {
+            Log.d("FirstStart", "Introduction Overlay Not Shown")
         }
 
         previewView = findViewById(R.id.cameraPreview)
         toggleFlash = findViewById(R.id.toggleFlash)
         arrowImageView = findViewById(R.id.arrowImageView)
+        emergencyLocation = findViewById(R.id.emergencyLocation)
+        emergencyLocation.visibility = View.GONE
+        var phoneNumber: String = ""
+        userAuth = FirebaseAuth.getInstance()
+        val firebaseUser = userAuth.currentUser
+        val userId = firebaseUser?.uid
+        if (userId != null) {
+            emergencyLocation.visibility = View.VISIBLE
+            val databaseReference = FirebaseDatabase.getInstance().reference
+            databaseReference.child("users").child(userId).child("number")
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        phoneNumber = dataSnapshot.getValue(String::class.java).toString()
+                    }
+
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        // Handle errors
+                    }
+                })
+        }
+
+        emergencyLocation.setOnClickListener{
+            // Request SMS permission if not granted
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.SEND_SMS), 1)
+            }
+
+            val message = "Hello, this is a test message."
+            // phoneNumber = "+94777942386"
+            // Check if the phone number and message are not empty
+            if (phoneNumber!="") {
+                Log.d("Message","Sent")
+                sendSms(phoneNumber, message)
+            }else{
+                Toast.makeText(this, "Phone number not found.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        val userMenu = findViewById<ImageView>(R.id.userMenu)
+
+            // Set up a click listener for the ImageView
+            userMenu.setOnClickListener { v ->
+                // Create a PopupMenu
+                val popupMenu = PopupMenu(this, v)
+                popupMenu.inflate(R.menu.user_menu) // Use your custom menu XML
+
+                // Set a listener for menu item clicks
+                popupMenu.setOnMenuItemClickListener(PopupMenu.OnMenuItemClickListener { item ->
+                    when (item.itemId) {
+                        R.id.menu_item1 -> {
+                            // Handle the click on menu_item1
+                            // Add your custom logic here
+                            return@OnMenuItemClickListener true
+                        }
+
+                        R.id.menu_item2 -> {
+                            // Handle the click on menu_item2
+                            showIntroductionOverlay()
+                            // Add your custom logic here
+                            return@OnMenuItemClickListener true
+                        }
+                        R.id.menu_item3 -> {
+                            // Handle the click on menu_item3
+                            // Create an AlertDialog for logout confirmation
+                            val alertDialogBuilder = AlertDialog.Builder(this)
+
+                            // Set the dialog title and message for logout confirmation
+                            alertDialogBuilder
+                                .setTitle("Log Out")
+                                .setMessage("Are you sure you want to log out?")
+
+                            // Add a "Cancel" button
+                            alertDialogBuilder.setNegativeButton("Cancel") { dialog, _ ->
+                                // Dismiss the dialog if "Cancel" is clicked
+                                dialog.dismiss()
+                            }
+
+                            // Add a "Log Out" button
+                            alertDialogBuilder.setPositiveButton("Log Out") { dialog, _ ->
+                                // Perform the logout action
+                                userAuth.signOut()
+                                // Start the CustomerLogIn activity
+                                val intent = Intent(this@CameraView, Login::class.java)
+                                finish()
+                                startActivity(intent)
+                                // Dismiss the dialog
+                                dialog.dismiss()
+                            }
+
+                            // Create and show the AlertDialog
+                            val alertDialog = alertDialogBuilder.create()
+                            alertDialog.show()
+
+                            return@OnMenuItemClickListener true
+                        }
+                        // Add more menu items as needed
+                        else -> false
+                    }
+                })
+
+                // Show the PopupMenu
+                popupMenu.show()
+            }
+
 
         val arrowImageView: ImageView = findViewById(R.id.arrowImageView)
 
@@ -160,7 +285,6 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         Translator2.setOnClickListener {
             val intent = Intent(this@CameraView, Translator::class.java)
             startActivity(intent)
-            finish()
         }
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
@@ -353,6 +477,22 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         }
 
     }
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            1 -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission granted
+                    Log.d("Permission", "SEND_SMS permission granted")
+                    // You can proceed to send the SMS here
+                } else {
+                    // Permission denied
+                    Log.d("Permission", "SEND_SMS permission denied")
+                }
+            }
+        }
+    }
+
     private fun showIntroductionOverlay() {
         val introductionOverlay = findViewById<View>(R.id.introductionOverlay)
         introductionOverlay.visibility = View.VISIBLE
@@ -695,9 +835,9 @@ class CameraView : AppCompatActivity(), SensorEventListener {
     }
     fun angleFromCoordinate(lat1: Double, long1: Double, lat2: Double, long2: Double): Double {
         val dLon = (long2 - long1)
-        val y = Math.sin(Math.toRadians(dLon)) * Math.cos(Math.toRadians(lat2))
-        val x = Math.cos(Math.toRadians(lat1)) * Math.sin(Math.toRadians(lat2)) -
-                Math.sin(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.cos(Math.toRadians(dLon))
+        val y = sin(Math.toRadians(dLon)) * cos(Math.toRadians(lat2))
+        val x = cos(Math.toRadians(lat1)) * sin(Math.toRadians(lat2)) -
+                sin(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * cos(Math.toRadians(dLon))
         var brng = Math.toDegrees(Math.atan2(y, x))
         brng = (brng + 360) % 360
         return brng
@@ -1082,6 +1222,15 @@ class CameraView : AppCompatActivity(), SensorEventListener {
                 }, 5000) // 10000 milliseconds = 10 seconds
             }
 
+        }
+    }
+
+    private fun sendSms(phoneNumber: String, message: String) {
+        try {
+            val smsManager = SmsManager.getDefault()
+            smsManager.sendTextMessage(phoneNumber, null, message, null, null)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
