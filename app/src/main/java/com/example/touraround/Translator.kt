@@ -67,7 +67,8 @@ class Translator : AppCompatActivity() {
     private lateinit var languageSpinner: Spinner
     private lateinit var selectedLanguageCode: String
     private lateinit var backInTopBar : ImageView
-
+    val firebaseUser = FirebaseAuth.getInstance().currentUser
+    val userId = firebaseUser?.uid
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
@@ -142,6 +143,10 @@ class Translator : AppCompatActivity() {
             popupMenu.inflate(R.menu.user_menu) // Use your custom menu XML
             val item2 = popupMenu.menu.findItem(R.id.menu_item2)
             item2.isVisible = false
+            if(userId==null){
+                val item1 = popupMenu.menu.findItem(R.id.menu_item1)
+                item1.isVisible = false
+            }
             // Set a listener for menu item clicks
             popupMenu.setOnMenuItemClickListener(PopupMenu.OnMenuItemClickListener { item ->
                 when (item.itemId) {

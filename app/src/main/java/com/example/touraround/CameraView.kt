@@ -238,6 +238,11 @@ class CameraView : AppCompatActivity(), SensorEventListener {
             val popupMenu = PopupMenu(this, v)
             popupMenu.inflate(R.menu.user_menu) // Use your custom menu XML
 
+            if(userId==null){
+                val item1 = popupMenu.menu.findItem(R.id.menu_item1)
+                item1.isVisible = false
+            }
+
             // Set a listener for menu item clicks
             popupMenu.setOnMenuItemClickListener(PopupMenu.OnMenuItemClickListener { item ->
                 when (item.itemId) {
