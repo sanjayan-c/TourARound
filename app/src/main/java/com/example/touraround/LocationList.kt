@@ -22,7 +22,8 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
-class LocationList :AppCompatActivity(){
+
+class LocationList :AppCompatActivity() {
 
     private lateinit var database : DatabaseReference
     private lateinit var dataList : ArrayList<LocationData>
@@ -53,8 +54,9 @@ class LocationList :AppCompatActivity(){
             //search.clearFocus()
 
         dataList = ArrayList()
-        adapter = FavLocationAdapter(this@LocationList, dataList)
+        adapter = FavLocationAdapter(this@LocationList, dataList, this)
         recyclerView.adapter = adapter
+        //adapter.directionClickListener = this // Set the listener
         databaseReference = FirebaseDatabase.getInstance().getReference("Fav Location")
         val dialogBuilder = AlertDialog.Builder(this@LocationList)
         val dialog = dialogBuilder.create()
@@ -76,11 +78,13 @@ class LocationList :AppCompatActivity(){
             override fun onCancelled(error: DatabaseError) {
                 dialog.dismiss()
             }
+
+
         })
 
         findViewById<View>(R.id.fab).setOnClickListener {
                 if (currentLocation != null) {
-                    showAddLocationFragment(currentLocation)
+                    showAddLocationActivity(currentLocation)
                 } else {
                     // Handle the case where currentLocation is null
                     Toast.makeText(this,    "Current location is null", Toast.LENGTH_SHORT).show()
@@ -96,16 +100,17 @@ class LocationList :AppCompatActivity(){
             startActivity(intent)
             finish()
         }
+
+
     }
-    private fun showAddLocationFragment(currentLocation: Location) {
+    private fun showAddLocationActivity(currentLocation: Location) {
         val latitude = currentLocation.latitude
         val longitude = currentLocation.longitude
-        Log.e("Passed Location", "Latitude: ${latitude}, Longitude: ${longitude}")
-        val addLocationFragment = AddLocation.newInstance(latitude, longitude)
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, addLocationFragment)
-            .addToBackStack(null)
-            .commit()
+        Log.e("Passed Location", "Latitude: $latitude, Longitude: $longitude")
+        val intent = Intent(this, AddLocation::class.java)
+        intent.putExtra("latitude", latitude)
+        intent.putExtra("longitude", longitude)
+        startActivity(intent)
     }
 
     private fun fetchData() {
