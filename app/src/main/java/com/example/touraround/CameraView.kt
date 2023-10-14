@@ -1244,6 +1244,11 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         val Comments=dialog.findViewById<Button>(R.id.buttonShowComments)
         val editTextComment =dialog.findViewById<EditText>(R.id.editTextComment)
         val Submit = dialog.findViewById<Button>(R.id.submitcomments)
+
+
+
+
+
         Submit.setOnClickListener{
 
             val commentText = editTextComment.text.toString()
@@ -1258,11 +1263,7 @@ class CameraView : AppCompatActivity(), SensorEventListener {
                 val commentId = commentsRef.push().key
                 val uid = userEmail?.substringBefore('@')
 
-                if(uid==null){
-                    editTextComment.visibility = View.GONE
-                    Submit.visibility = View.GONE
 
-                }
 
                 // Create a Comment object
                 val comment = Comment(commentId,uid, commentText, destination.toString(),userId)
@@ -1291,9 +1292,11 @@ class CameraView : AppCompatActivity(), SensorEventListener {
             val recyclerViewComments = dialog.findViewById<RecyclerView>(R.id.recyclerViewComments)
 
 
+            if(userId!=null){
+                editTextComment.visibility = View.VISIBLE
+                Submit.visibility = View.VISIBLE
 
-            editTextComment.visibility = if (editTextComment.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-            Submit.visibility = if (Submit.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+            }
             recyclerViewComments.visibility = if (recyclerViewComments.visibility == View.VISIBLE) View.GONE else View.VISIBLE
 
             val commentList = mutableListOf<Comment>()

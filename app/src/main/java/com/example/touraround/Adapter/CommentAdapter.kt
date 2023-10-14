@@ -61,7 +61,7 @@ class CommentAdapter(private val comments: List<Comment>) :
            } else {
                // If the comment is not editable, show the TextView
                textViewComment.text = comment.text
-               user.text = comment.uid
+               user.text = comment.uname
 
                editButton.visibility = View.GONE
                deleteButton.visibility = View.GONE
