@@ -12,6 +12,7 @@ import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.recyclerview.widget.RecyclerView
 import com.example.touraround.Comment
 import com.example.touraround.R
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 
 
@@ -19,6 +20,9 @@ class CommentAdapter(private val comments: List<Comment>) :
     RecyclerView.Adapter<CommentAdapter.CommentViewHolder>() {
 
 
+    val firebaseUser = FirebaseAuth.getInstance().currentUser
+    val userId = firebaseUser?.uid
+    val userEmail = firebaseUser?.email
    inner class CommentViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val textViewComment: TextView = itemView.findViewById(R.id.textViewComment)
         val user: TextView = itemView.findViewById(R.id.User)
@@ -35,7 +39,7 @@ class CommentAdapter(private val comments: List<Comment>) :
 
 
            textViewComment.text = comment.text
-           user.text = comment.uid
+           user.text = comment.uname
 
            if (isEditable) {
                // If the comment is editable by the current user, show an EditText
@@ -85,7 +89,7 @@ class CommentAdapter(private val comments: List<Comment>) :
     override fun onBindViewHolder(holder: CommentViewHolder, position: Int) {
 //        holder.textViewComment.text = comments[position].text
 //        holder.user.text = comments[position].uid
-        holder.bind(comments[position],"shand")
+        holder.bind(comments[position],"$userId")
 
 
 
@@ -103,6 +107,7 @@ class CommentAdapter(private val comments: List<Comment>) :
         commentsRef.child(commentId).child("text").setValue("$newComment")
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
+
                     // Comment updated successfully
                    // Toast.makeText(, "Comment edited", Toast.LENGTH_SHORT).show()
                 } else {
@@ -121,6 +126,9 @@ class CommentAdapter(private val comments: List<Comment>) :
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     // Comment deleted successfully
+                //    Toast.makeText(this, "Comment deleted", Toast.LENGTH_SHORT).show()
+
+                    // If you are in an Activity, use the following code to finish the activity
 
                     //Toast.makeText(context, "Comment edited", Toast.LENGTH_SHORT).show()
                 } else {
