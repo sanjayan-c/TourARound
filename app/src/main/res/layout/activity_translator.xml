@@ -7,6 +7,8 @@
     android:layout_height="match_parent"
     android:background="@android:color/white">
 
+
+
     <!-- Camera Preview -->
     <androidx.camera.view.PreviewView
         android:id="@+id/viewfinder"
@@ -16,6 +18,11 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintHeight_percent="0.5" />
+    <include
+        layout="@layout/top_bar"
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="50sp" />
 
     <ImageView
         android:id="@+id/capturedImageView"
