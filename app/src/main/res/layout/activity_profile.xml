@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/cus_login_signup_frame"
+    tools:context=".Fragment.SignUpFragment">
+    <!-- Include the custom top bar -->
+    <include
+        layout="@layout/top_bar"
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="60sp"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_gravity="center"
+        android:gravity="center">
+        <EditText
+            android:id="@+id/cus_login_name"
+            android:layout_width="300dp"
+            android:layout_height="40dp"
+            android:hint="Your Name"
+            android:paddingHorizontal="20dp"
+            android:gravity="center_vertical"
+            android:layout_gravity="center_horizontal"
+            android:textColorHint="#000000"
+            android:textColor="#000000"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/cus_splash_buttons" />
+        <EditText
+            android:id="@+id/cus_emergency_name"
+            android:layout_width="300dp"
+            android:layout_height="40dp"
+            android:hint="Urgent Contact Name"
+            android:paddingHorizontal="20dp"
+            android:gravity="center_vertical"
+            android:layout_gravity="center_horizontal"
+            android:textColorHint="#000000"
+            android:textColor="#000000"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/cus_splash_buttons" />
+        <EditText
+            android:id="@+id/cus_login_emer_contact"
+            android:layout_width="300dp"
+            android:layout_height="40dp"
+            android:hint="Emergency Contact No"
+            android:paddingHorizontal="20dp"
+            android:gravity="center_vertical"
+            android:layout_gravity="center_horizontal"
+            android:textColorHint="#000000"
+            android:textColor="#000000"
+            android:inputType="number"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/cus_splash_buttons" />
+        <EditText
+            android:id="@+id/cus_login_emer_details"
+            android:layout_width="300dp"
+            android:layout_height="80dp"
+            android:hint="Description"
+            android:paddingVertical="5dp"
+            android:paddingHorizontal="20dp"
+            android:gravity="top|start"
+            android:layout_gravity="center_horizontal"
+            android:textColorHint="#000000"
+            android:textColor="#000000"
+            android:inputType="textMultiLine"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/cus_splash_buttons" />
+        <TextView
+            android:id="@+id/cus_inavlid_number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_gravity="center_horizontal"
+            android:text="Check your number"
+            android:textColor="@color/red_A700"
+            android:textSize="16dp"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="10dp"
+            android:gravity="center"/>
+        <Button
+            android:id="@+id/cus_signup_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Update"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="30dp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/cus_button_update"
+            style="@style/custxtOpenSansromanbold20"
+            android:textSize="18dp"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="10dp"
+            android:gravity="center"/>
+    </LinearLayout>
+</LinearLayout>

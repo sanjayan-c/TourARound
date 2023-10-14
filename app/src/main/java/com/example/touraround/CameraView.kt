@@ -20,6 +20,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.provider.Settings
+import android.telephony.SmsManager
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
@@ -32,6 +33,7 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.PopupMenu
 import android.widget.RatingBar
 import android.widget.RelativeLayout
 import android.widget.Spinner
@@ -48,6 +50,7 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -76,9 +79,9 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
-data class Comment(val commentId: String? = null, val uname: String? = null, val text: String? = null, val destination: String? = null,val uid: String? = null)
 class CameraView : AppCompatActivity(), SensorEventListener {
     private lateinit var toggleFlash: ImageButton
+    private lateinit var emergencyLocation: ImageButton
     private lateinit var previewView: PreviewView
     private var cameraFacing = CameraSelector.LENS_FACING_BACK
     private var camera: Camera? = null
@@ -121,10 +124,9 @@ class CameraView : AppCompatActivity(), SensorEventListener {
 
     private var isCameraPermissionGranted = false
     private var isLocationPermissionGranted = false
-
+    private var firstStart: Boolean = true
 
     private lateinit var Translator2: ImageView
-
     val firebaseUser = FirebaseAuth.getInstance().currentUser
     val userId = firebaseUser?.uid
     val userEmail = firebaseUser?.email
@@ -134,20 +136,162 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
 
+
         // Check if the introduction overlay has been shown before
-        val sharedPreferences: SharedPreferences = getSharedPreferences("prefs",MODE_PRIVATE)
-        val firstStart = sharedPreferences.getBoolean("firstStart",true)
+        val sharedPreferences: SharedPreferences = getSharedPreferences("prefs", MODE_PRIVATE)
+
+        // Retrieve the value of firstStart from SharedPreferences
+        firstStart = sharedPreferences.getBoolean("firstStart", true)
 
         if (firstStart) {
             // Show the introduction overlay
+            Log.d("FirstStart", "Showing Introduction Overlay")
             showIntroductionOverlay()
+
+            // Set "firstStart" to false to indicate that the overlay has been shown
+            val editor: SharedPreferences.Editor = sharedPreferences.edit()
+            editor.putBoolean("firstStart", false)
+            editor.apply()
+        } else {
+            Log.d("FirstStart", "Introduction Overlay Not Shown")
         }
 
         previewView = findViewById(R.id.cameraPreview)
         toggleFlash = findViewById(R.id.toggleFlash)
         arrowImageView = findViewById(R.id.arrowImageView)
-
+        emergencyLocation = findViewById(R.id.emergencyLocation)
+        emergencyLocation.visibility = View.GONE
         val arrowImageView: ImageView = findViewById(R.id.arrowImageView)
+
+        val userId = firebaseUser?.uid
+        val databaseReference = FirebaseDatabase.getInstance().getReference("user")
+        var emergencyNumber:String = ""
+        var name:String = ""
+        var details:String = ""
+        var emergencyName :String = ""
+
+        if (userId != null) {
+            emergencyLocation.visibility = View.VISIBLE
+            val userReference = databaseReference.child(userId)
+
+            userReference.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        val user = dataSnapshot.getValue(User::class.java)
+
+                        name = user?.name.toString()
+                        details = user?.details.toString()
+                        emergencyName = user?.emergencyContactName.toString()
+                        emergencyNumber = user?.emergencyContactNumber.toString()
+
+                        Log.d("YourTag", "Name: $name")
+                        Log.d("YourTag", "Details: $details")
+                        Log.d("YourTag", "Emergency Name: $emergencyName")
+                        Log.d("YourTag", "Emergency Number: $emergencyNumber")
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                }
+
+            })
+        }
+
+        emergencyLocation.setOnClickListener{
+            // Request SMS permission if not granted
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.SEND_SMS), 1)
+            }
+            Log.d("Message",emergencyNumber)
+            var message : String = ""
+            if(name=="") {
+                message="Hey ${emergencyName}, Reach me soon. My current location is Latitude ${currentLocation?.latitude}, Longitude ${currentLocation?.longitude}"
+            }else{
+                message="Hey ${emergencyName},I'm ${name},Reach me soon. My current location is Latitude ${currentLocation?.latitude}, Longitude ${currentLocation?.longitude}"
+            }
+            if(details!="") {
+                message += " This is my message: ${details}"
+            }
+            // phoneNumber = "+94777942386"
+            // Check if the phone number and message are not empty
+            if (emergencyNumber!="") {
+                val phoneNumberWithoutBlanks = emergencyNumber.replace(" ", "")
+                Log.d("Message","Sent")
+                Log.d("Message",message)
+                Log.d("Message",phoneNumberWithoutBlanks)
+                sendSms(phoneNumberWithoutBlanks, message)
+            }else{
+                Toast.makeText(this, "Phone number not found.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        val userMenu = findViewById<ImageView>(R.id.userMenu)
+
+        // Set up a click listener for the ImageView
+        userMenu.setOnClickListener { v ->
+            // Create a PopupMenu
+            val popupMenu = PopupMenu(this, v)
+            popupMenu.inflate(R.menu.user_menu) // Use your custom menu XML
+
+            // Set a listener for menu item clicks
+            popupMenu.setOnMenuItemClickListener(PopupMenu.OnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.menu_item1 -> {
+                        // Handle the click on menu_item1
+                        val intent = Intent(this@CameraView, ProfileActivity::class.java) // Replace YourActivity with the desired activity
+                        startActivity(intent)
+                        // Add your custom logic here
+                        return@OnMenuItemClickListener true
+                    }
+
+                    R.id.menu_item2 -> {
+                        // Handle the click on menu_item2
+                        showIntroductionOverlay()
+                        // Add your custom logic here
+                        return@OnMenuItemClickListener true
+                    }
+                    R.id.menu_item3 -> {
+                        // Handle the click on menu_item3
+                        // Create an AlertDialog for logout confirmation
+                        val alertDialogBuilder = AlertDialog.Builder(this)
+
+                        // Set the dialog title and message for logout confirmation
+                        alertDialogBuilder
+                            .setTitle("Log Out")
+                            .setMessage("Are you sure you want to log out?")
+
+                        // Add a "Cancel" button
+                        alertDialogBuilder.setNegativeButton("Cancel") { dialog, _ ->
+                            // Dismiss the dialog if "Cancel" is clicked
+                            dialog.dismiss()
+                        }
+
+                        // Add a "Log Out" button
+                        alertDialogBuilder.setPositiveButton("Log Out") { dialog, _ ->
+                            // Perform the logout action
+                            FirebaseAuth.getInstance().signOut()
+                            // Start the CustomerLogIn activity
+                            val intent = Intent(this@CameraView, Login::class.java)
+                            finish()
+                            startActivity(intent)
+                            // Dismiss the dialog
+                            dialog.dismiss()
+                        }
+
+                        // Create and show the AlertDialog
+                        val alertDialog = alertDialogBuilder.create()
+                        alertDialog.show()
+
+                        return@OnMenuItemClickListener true
+                    }
+                    // Add more menu items as needed
+                    else -> false
+                }
+            })
+
+            // Show the PopupMenu
+            popupMenu.show()
+        }
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
@@ -1183,12 +1327,14 @@ class CameraView : AppCompatActivity(), SensorEventListener {
                 })
         }
 
-
-
-
-
-
-
+    }
+    private fun sendSms(phoneNumber: String, message: String) {
+        try {
+            val smsManager = SmsManager.getDefault()
+            smsManager.sendTextMessage(phoneNumber, null, message, null, null)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
 }

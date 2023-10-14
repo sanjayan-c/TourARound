@@ -14,9 +14,14 @@ data class Location(
 )
 
 data class User(
-    val name: String,
-    val email: String,
-    val uid: String,
-    val number:String
+    val name: String? = null,
+    val email: String? = null,
+    val uid: String? = null,
+    val emergencyContactName:String? = null,
+    val emergencyContactNumber:String? = null,
+    val details: String? = null
 )
+data class Comment
+    (val commentId: String? = null, val uname: String? = null, val text: String? = null, val destination: String? = null,val uid: String? = null)
+
 

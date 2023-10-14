@@ -1,7 +1,9 @@
 package com.example.touraround
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.ContentValues
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -13,6 +15,7 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.ImageView
+import android.widget.PopupMenu
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -63,6 +66,7 @@ class Translator : AppCompatActivity() {
     private lateinit var transTextView: TextView
     private lateinit var languageSpinner: Spinner
     private lateinit var selectedLanguageCode: String
+    private lateinit var backInTopBar : ImageView
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
@@ -122,6 +126,75 @@ class Translator : AppCompatActivity() {
         } else {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
+        backInTopBar = findViewById(R.id.backInTopBar)
+        backInTopBar.visibility = View.VISIBLE
+        backInTopBar.setOnClickListener{
+            finish()
+        }
+        val userMenu = findViewById<ImageView>(R.id.userMenu)
+
+        // Set up a click listener for the ImageView
+        userMenu.setOnClickListener { v ->
+            // Create a PopupMenu
+            val popupMenu = PopupMenu(this, v)
+            popupMenu.inflate(R.menu.user_menu) // Use your custom menu XML
+            val item2 = popupMenu.menu.findItem(R.id.menu_item2)
+            item2.isVisible = false
+            // Set a listener for menu item clicks
+            popupMenu.setOnMenuItemClickListener(PopupMenu.OnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.menu_item1 -> {
+                        // Handle the click on menu_item1
+                        val intent = Intent(this@Translator, ProfileActivity::class.java) // Replace YourActivity with the desired activity
+                        startActivity(intent)
+                        // Add your custom logic here
+                        return@OnMenuItemClickListener true
+                    }
+
+                    R.id.menu_item3 -> {
+                        // Handle the click on menu_item3
+                        // Create an AlertDialog for logout confirmation
+                        val alertDialogBuilder = AlertDialog.Builder(this)
+
+                        // Set the dialog title and message for logout confirmation
+                        alertDialogBuilder
+                            .setTitle("Log Out")
+                            .setMessage("Are you sure you want to log out?")
+
+                        // Add a "Cancel" button
+                        alertDialogBuilder.setNegativeButton("Cancel") { dialog, _ ->
+                            // Dismiss the dialog if "Cancel" is clicked
+                            dialog.dismiss()
+                        }
+
+                        // Add a "Log Out" button
+                        alertDialogBuilder.setPositiveButton("Log Out") { dialog, _ ->
+                            // Perform the logout action
+                            FirebaseAuth.getInstance().signOut()
+                            // Start the CustomerLogIn activity
+                            val intent = Intent(this@Translator, Login::class.java)
+                            finish()
+                            startActivity(intent)
+                            // Dismiss the dialog
+                            dialog.dismiss()
+                        }
+
+                        // Create and show the AlertDialog
+                        val alertDialog = alertDialogBuilder.create()
+                        alertDialog.show()
+
+                        return@OnMenuItemClickListener true
+                    }
+                    // Add more menu items as needed
+                    else -> false
+                }
+            })
+
+            // Show the PopupMenu
+            popupMenu.show()
+        }
+
+
     }
 
     private fun getSupportedLanguages(): List<Locale> {
