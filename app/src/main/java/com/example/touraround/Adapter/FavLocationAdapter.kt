@@ -7,16 +7,34 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.widget.AppCompatImageButton
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.model.AdapterClass
 import androidx.recyclerview.widget.RecyclerView
 import com.example.touraround.EditLocationActivity
+import com.example.touraround.LocationList
 import com.example.touraround.R
+import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 
-class FavLocationAdapter(private val context: android.content.Context, private val datalist: ArrayList<LocationData>) : RecyclerView.Adapter<ViewHolderClass>() {
+class FavLocationAdapter(private val context: Context,
+                         private val datalist: ArrayList<LocationData>,
+                         private val locationList: LocationList) : RecyclerView.Adapter<ViewHolderClass>() {
+    interface DirectionClickListener {
+        fun onDirectionClick(destinationId: LatLng)
+    }
+
+    var directionClickListener: DirectionClickListener? = null
+
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -33,7 +51,7 @@ class FavLocationAdapter(private val context: android.content.Context, private v
         holder.rvLocDesc.text=currentItem.locationDesc
 
         Log.d("FavLocationAdapter", "Item at position $position - Name: ${currentItem.locationName}, Desc: ${currentItem.locationDesc}")
-        holder.cardView.setOnClickListener {
+        holder.editLocBtn.setOnClickListener {
             val intent = Intent(context, EditLocationActivity::class.java)
 
             // Pass data as extras to the intents
@@ -49,7 +67,45 @@ class FavLocationAdapter(private val context: android.content.Context, private v
             context.startActivity(intent)
         }
 
+        holder.deleteLocButton.setOnClickListener {
+            // Retrieve the ID of the data row you want to delete from 'currentItem'
+            val idToDelete = currentItem.id
+
+            val databaseReference = FirebaseDatabase.getInstance().getReference("Fav Location")
+
+            // Create a reference to the data node with the specified ID
+            val dataNodeReference = databaseReference.child(idToDelete)
+
+            // Remove the data node from the database
+            dataNodeReference.removeValue()
+                .addOnSuccessListener {
+                    // Data was successfully deleted
+                    // You can show a message or perform any other action here
+
+                    // Additionally, you should remove the item from the adapter's data list
+                    datalist.remove(currentItem)
+                    notifyDataSetChanged()
+                }
+                .addOnFailureListener { e ->
+                    // Handle any errors during the deletion
+                    Log.e("DeleteData", "Error deleting data: $e")
+                }
+
+//            holder.directionLocButton.setOnClickListener {
+//                val locationId = currentItem.id // Get the ID of the selected item
+//                getLocationDetailxsById(databaseReference, locationId) { latitude, longitude ->
+//                    val destination = LatLng(latitude, longitude)
+//                    directionClickListener?.onDirectionClick(destination)
+//                }
+//            }
+
+
+
+        }
+
     }
+
+
 
     override fun getItemCount(): Int {
         return datalist.size
@@ -72,10 +128,12 @@ class FavLocationAdapter(private val context: android.content.Context, private v
 }
 class ViewHolderClass(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-
     val rvLocName: TextView
     val rvLocDesc: TextView
-    val cardView: CardView = itemView.findViewById(R.id.recCard)
+    val editLocBtn: AppCompatImageButton = itemView.findViewById(R.id.editLoc)
+    val deleteLocButton: ImageButton = itemView.findViewById(R.id.deleteLoc)
+    val directionLocButton: ImageButton = itemView.findViewById(R.id.directionLoc)
+
 
     init {
         rvLocName = itemView.findViewById(R.id.locTitle)
@@ -93,7 +151,37 @@ class ViewHolderClass(itemView: View) : RecyclerView.ViewHolder(itemView) {
 //            itemView.context.startActivity(intent)
 //        }
 
+}
+//    private fun getLocationDetailsById(
+//        databaseReference: DatabaseReference,
+//        locationId: String,
+//        callback: (Double, Double) -> Unit
+//    ) {
+//        databaseReference.orderByChild("id").equalTo(locationId)
+//            .addListenerForSingleValueEvent(object : ValueEventListener {
+//                override fun onDataChange(dataSnapshot: DataSnapshot) {
+//                    if (dataSnapshot.exists()) {
+//                        for (locationSnapshot in dataSnapshot.children) {
+//                            val latitude = locationSnapshot.child("latitude").getValue(Double::class.java)
+//                            val longitude = locationSnapshot.child("longitude").getValue(Double::class.java)
+//
+//                            if (latitude != null && longitude != null) {
+//                                callback(latitude, longitude)
+//                                return
+//                            }
+//                        }
+//                    }
+//
+//                    // Handle the case where data for the given ID doesn't exist
+//                    callback(0.0, 0.0) // You can choose appropriate default values
+//                }
+//
+//                override fun onCancelled(databaseError: DatabaseError) {
+//                    // Handle errors, e.g., databaseError.toException()
+//                }
+//            })
+//
+//}
 
-    }
 }
 
