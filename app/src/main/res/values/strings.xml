@@ -6,10 +6,10 @@
     <string name="downloading_model_files">Downloading model files...</string>
     <string name="pref_key_introduction_shown">introduction_shown</string>
     <array name="radius_options">
-        <item> 5 km </item>
-        <item> 10 km </item>
-        <item> 15 km </item>
-        <item> 20 km </item>
+        <item>5 km</item>
+        <item>10 km</item>
+        <item>15 km</item>
+        <item>20 km</item>
     </array>
 
     <string name="alt_bottom_sheet_chevron">Bottom sheet expandable indicator</string>
@@ -42,5 +42,7 @@
     <string-array name="models_spinner_titles">
         <item>Custom Model</item>
     </string-array>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

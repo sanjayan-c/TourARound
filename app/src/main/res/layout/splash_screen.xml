@@ -4,6 +4,32 @@
     android:layout_height="match_parent"
     android:background="@color/bar">
 
+    <LinearLayout
+        android:id="@+id/cus_login_register"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:layout_marginEnd="30dp"
+        android:layout_marginTop="80dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true">
+
+        <TextView
+            android:text="Login / Register"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textSize="20sp"/>
+
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/cus_img_backarrow"
+            android:rotation="180"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
     <!-- Add your app name or logo here -->
     <ImageView
         android:id="@+id/appIcon"
@@ -12,7 +38,19 @@
         android:layout_centerInParent="true"
         android:contentDescription="@string/app_name"
         android:src="@drawable/logo" />
-
-    <!-- You can add a loading indicator or other UI elements here if needed -->
+    <Button
+        android:id="@+id/appLoginGuest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/appIcon"
+        android:layout_centerInParent="true"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:visibility="gone"
+        android:paddingHorizontal="20dp"
+        android:textStyle="bold"
+        style="@style/custxtOpenSansromanbold20"
+        android:background="@drawable/cus_profile_inputbox_border"
+        android:text="Start Tour"/>
 
 </RelativeLayout>

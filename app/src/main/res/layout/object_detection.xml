@@ -11,15 +11,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:scaleType="fillStart"/>
-
-    <include
+   <include
         layout="@layout/top_bar"
         android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="50sp" />
 
+    <com.example.touraround.ObjectOverlay
 
-<com.example.touraround.ObjectOverlay
     android:id="@+id/overlay"
     android:layout_height="match_parent"
     android:layout_width="match_parent" />
