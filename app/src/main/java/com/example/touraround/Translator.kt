@@ -5,35 +5,50 @@ import android.content.ContentValues
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.location.Location
 import android.os.Bundle
 import android.util.Base64
 import android.util.Log
 import android.view.View
-import android.widget.*
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.ImageView
+import android.widget.Spinner
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.*
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import com.google.cloud.translate.Translate
+import com.google.cloud.translate.TranslateOptions
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.functions.FirebaseFunctions
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
-import okhttp3.*
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import com.google.cloud.translate.Translate
-import com.google.cloud.translate.TranslateOptions
-import java.util.Locale
 
 //@OptIn(markerClass = arrayOf(androidx.camera.core.ExperimentalGetImage::class))
 class Translator : AppCompatActivity() {
@@ -70,6 +85,14 @@ class Translator : AppCompatActivity() {
         capturedImageView.visibility = View.GONE
         languageSpinner = findViewById(R.id.languageSpinner)
         selectedLanguageCode = ""
+
+        // Retrieve the location from the intent
+        val currentLocation = intent.getParcelableExtra<Location>("currentLocation")
+
+        if (currentLocation != null) {
+            // Log the location data
+            Log.d("Translator", "Latitude: ${currentLocation.latitude}, Longitude: ${currentLocation.longitude}")
+        }
 
         val supportedLanguages = getSupportedLanguages()
 

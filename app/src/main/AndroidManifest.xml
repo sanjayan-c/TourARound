@@ -9,7 +9,12 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <uses-feature android:name="android.hardware.camera.any" />
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
 
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="30" />
@@ -29,17 +34,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TourARound"
         tools:targetApi="33">
-        <!-- Add your Google Maps API key as meta-data here -->
+        <activity
+            android:name=".Login"
+            android:exported="false" />
+        <activity
+            android:name=".EntryActivity"
+            android:exported="false" /> <!-- Add your Google Maps API key as meta-data here -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBZShPiUN_fogA26tFRvKK79owBT-BuW8c" /> <!-- <activity -->
-        <!-- android:name=".MainActivity" -->
-        <!-- android:exported="true"> -->
-        <!-- <intent-filter> -->
-        <!-- <action android:name="android.intent.action.MAIN" /> -->
-        <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
-        <!-- </intent-filter> -->
-        <!-- </activity> -->
         <activity
             android:name=".CameraView"
             android:exported="true"
@@ -48,11 +51,10 @@
             android:name=".Translator"
             android:exported="true"
             android:screenOrientation="portrait" />
-      <activity
+        <activity
             android:name=".LocationList"
             android:exported="true"
             android:screenOrientation="portrait" />
-
         <activity
             android:name=".SplashActivity"
             android:exported="true"

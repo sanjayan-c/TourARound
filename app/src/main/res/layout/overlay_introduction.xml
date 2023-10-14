@@ -12,7 +12,7 @@
         android:id="@+id/swtitchBarExplanatoryText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="60dp"
         android:layout_marginRight="10dp"
         android:layout_centerHorizontal="true"
         android:text="Turn on to view nearest tourist attractions"
@@ -36,8 +36,7 @@
         android:src="@drawable/arrow_point_bottom"
         android:contentDescription="Arrow"
         android:layout_marginTop="130dp"
-        android:rotation="270"
-        android:layout_marginStart="-25dp" />
+        android:rotation="225" />
     <!-- Explanatory Text for Radius -->
     <TextView
         android:id="@+id/textSetRadiusIntro"
@@ -45,21 +44,49 @@
         android:layout_height="wrap_content"
         android:text="Set the radius to search locations"
         android:textColor="#FFFFFF"
-        android:layout_marginTop="15dp"
-        android:layout_marginStart="15dp"
+        android:layout_marginStart="85dp"
         android:layout_below="@id/arrowSetRadius"/>
-    <!-- Explanatory Text for Flashlight -->
+    <!-- Explanatory Arrow for My Locations -->
+    <ImageView
+        android:id="@+id/arrowMyLocations"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:src="@drawable/arrow_point_bottom"
+        android:contentDescription="Arrow"
+        android:layout_marginTop="180dp"
+        android:rotation="240" />
+    <!-- Explanatory Text for My Locations -->
     <TextView
-        android:id="@+id/flashlightExplanatoryText"
+        android:id="@+id/textMyLocations"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bookmark locations"
+        android:textColor="#FFFFFF"
+        android:layout_marginStart="75dp"
+        android:layout_marginTop="10dp"
+        android:layout_below="@id/arrowMyLocations"/>
+    <!-- Arrow for Object Detection -->
+    <ImageView
+        android:id="@+id/arrowObjectDetection"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/objectDetectionExplanatoryText"
+        android:layout_alignParentEnd="true"
+        android:src="@drawable/arrow_point_right"
+        android:layout_marginEnd="90dp"
+        android:contentDescription="Arrow" />
+    <!-- Explanatory Text for Object Detection -->
+    <TextView
+        android:id="@+id/objectDetectionExplanatoryText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="30dp"
         android:layout_marginRight="10dp"
-        android:text="Click here to turn on flash light"
+        android:text="Object Detection"
         android:layout_below="@id/swtitchBarExplanatoryText"
         android:textColor="#FFFFFF"
-        android:layout_toStartOf="@id/arrowFlashLight"/>
+        android:layout_toStartOf="@id/arrowObjectDetection"/>
     <!-- Arrow for Flashlight -->
     <ImageView
         android:id="@+id/arrowFlashLight"
@@ -69,19 +96,66 @@
         android:layout_alignParentEnd="true"
         android:src="@drawable/arrow_point_right"
         android:layout_marginEnd="50dp"
+        android:rotation="320"
+        android:layout_marginTop="-10dp"
         android:contentDescription="Arrow" />
+    <!-- Explanatory Text for Flashlight -->
+    <TextView
+        android:id="@+id/flashlightExplanatoryText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:text="Click here to turn on flash light"
+        android:layout_below="@id/objectDetectionExplanatoryText"
+        android:textColor="#FFFFFF"
+        android:layout_toStartOf="@id/arrowFlashLight"/>
     <!-- Explanatory Text for Translate -->
     <TextView
         android:id="@+id/translateExplanatoryText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/flashlightExplanatoryText"
+        android:layout_below="@id/objectDetectionExplanatoryText"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="95dp"
+        android:layout_marginTop="80dp"
         android:layout_marginRight="10dp"
         android:text="Click here to translate"
         android:textColor="#FFFFFF"
         android:layout_toStartOf="@id/arrowTranslate2"/>
+    <!-- Arrow for Emergency Alert -->
+    <ImageView
+        android:id="@+id/emergencyAlert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_marginEnd="10dp"
+        android:layout_marginTop="250dp"
+        android:rotation="270"
+        android:layout_marginStart="-25dp"
+        android:src="@drawable/arrow_point_bottom"
+        android:contentDescription="Arrow" />
+    <ImageView
+        android:id="@+id/emergencyAlert1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/emergencyAlert"
+        android:layout_alignParentStart="true"
+        android:rotation="180"
+        android:layout_marginTop="9dp"
+        android:layout_marginStart="18dp"
+        android:src="@drawable/horizontal_line"
+        android:contentDescription="Arrow" />
+    <!-- Explanatory Text for Emergency Alert -->
+    <TextView
+        android:id="@+id/emergencyAlertText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="10dp"
+        android:layout_alignTop="@+id/emergencyAlert1"
+        android:text="Click here send emergency alert"
+        android:textColor="#FFFFFF"
+        android:layout_toEndOf="@id/emergencyAlert1"/>
     <!-- Arrow for Translate -->
     <ImageView
         android:id="@+id/arrowTranslate"
@@ -143,12 +217,14 @@
         android:layout_width="200dp"
         android:layout_height="200dp"
         android:src="@drawable/phone_posture"
-    android:layout_above="@id/centeredTextView" />
+        android:layout_above="@id/centeredTextView" />
+
     <TextView
         android:id="@+id/centeredTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
+        android:layout_above="@+id/centeredTextView2"
+        android:layout_centerHorizontal="true"
         android:text="Don't tilt the screen down"
         android:textColor="#FFFFFF"
         android:textSize="16sp"
@@ -159,7 +235,8 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:text="Hold phone straight, angle slightly up for accuracy"
-        android:layout_below="@+id/centeredTextView"
+        android:layout_above="@+id/startExplanatoryText"
+        android:layout_marginBottom="30dp"
         android:textColor="#FFFFFF"
         android:textSize="16sp"
         android:textStyle="bold" />

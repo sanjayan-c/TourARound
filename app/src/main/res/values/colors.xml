@@ -11,4 +11,7 @@
     <color name="edit_color">#63BD67</color>
     <color name="delete_color">#CD3227</color>
     <color name="bottom_sheet_text_color">@android:color/black</color>
+    <color name="indigo_300">#637ede</color>
+    <color name="indigo_A200">#4471fe</color>
+    <color name="red_A700">#ff0000</color>
 </resources>

@@ -28,7 +28,6 @@ import android.view.animation.AnimationUtils
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
-import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -49,10 +48,7 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import com.example.touraround.Adapter.CommentAdapter
 import com.example.touraround.Adapter.PhotoPagerAdapter
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -60,10 +56,6 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 import com.google.maps.model.DirectionsLeg
 import com.google.maps.model.DirectionsResult
 import com.google.maps.model.DirectionsStep
@@ -75,7 +67,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
-data class Comment(val commentId: String? = null, val uid: String? = null, val text: String? = null, val destination: String? = null)
+
 class CameraView : AppCompatActivity(), SensorEventListener {
     private lateinit var toggleFlash: ImageButton
     private lateinit var previewView: PreviewView
@@ -1091,87 +1083,6 @@ class CameraView : AppCompatActivity(), SensorEventListener {
             }
 
         }
-
-        val Comments=dialog.findViewById<Button>(R.id.buttonShowComments)
-        val editTextComment =dialog.findViewById<EditText>(R.id.editTextComment)
-        val Submit = dialog.findViewById<Button>(R.id.submitcomments)
-        Submit.setOnClickListener{
-
-            val commentText = editTextComment.text.toString()
-
-            // Check if the comment is not empty
-            if (commentText.isNotEmpty()) {
-                // Assuming you have a reference to your Firebase database
-                val database = FirebaseDatabase.getInstance()
-                val commentsRef = database.getReference("comments") // Adjust the reference path as needed
-
-                // Create a unique key for the comment
-                val commentId = commentsRef.push().key
-                val uid = "shan"
-                // Create a Comment object
-                val comment = Comment(commentId,uid, commentText, destination.toString())
-
-                // Use the commentId as the key to store the comment in the database
-                commentsRef.child(commentId!!).setValue(comment)
-                    .addOnSuccessListener {
-                        // Comment successfully added to the database
-                        Toast.makeText(this@CameraView, "Commented", Toast.LENGTH_LONG).show()
-                    }
-                    .addOnFailureListener {
-                        // Handle the error
-                        Toast.makeText(this@CameraView, "Failed to add comment", Toast.LENGTH_LONG).show()
-                    }
-            } else {
-                // Handle the case where the comment is empty
-                Toast.makeText(this@CameraView, "Please enter a comment", Toast.LENGTH_SHORT).show()
-            }
-
-
-        }
-
-        Comments.setOnClickListener{
-            Toast.makeText(this@CameraView, "Button Clicked", Toast.LENGTH_SHORT).show()
-
-            val recyclerViewComments = dialog.findViewById<RecyclerView>(R.id.recyclerViewComments)
-
-
-
-            editTextComment.visibility = if (editTextComment.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-            Submit.visibility = if (Submit.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-            recyclerViewComments.visibility = if (recyclerViewComments.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-
-            val commentList = mutableListOf<Comment>()
-
-            // Assume you have a reference to your Firebase database
-            val commentsRef = FirebaseDatabase.getInstance().getReference("comments")
-
-            // Query the database to get comments with the given destination
-            commentsRef.orderByChild("destination").equalTo(destination.toString())
-                .addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        commentList.clear()
-
-                        for (commentSnapshot in snapshot.children) {
-                            val comment = commentSnapshot.getValue(Comment::class.java)
-                            if (comment != null) {
-                                commentList.add(comment)
-                            }
-                        }
-
-                        // Update the adapter with the new commentList
-                        val adapter = CommentAdapter(commentList)
-                        recyclerViewComments.adapter = adapter
-                        recyclerViewComments.layoutManager = LinearLayoutManager(this@CameraView)
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {
-                        // Handle the error
-                        Toast.makeText(this@CameraView, "Failed to retrieve comments", Toast.LENGTH_LONG).show()
-                    }
-                })
-        }
-
-
     }
 
 }
