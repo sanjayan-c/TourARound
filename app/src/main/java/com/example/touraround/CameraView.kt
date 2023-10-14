@@ -75,9 +75,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import kotlin.math.asin
+import kotlin.math.atan2
+import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 class CameraView : AppCompatActivity(), SensorEventListener {
     private lateinit var toggleFlash: ImageButton
@@ -852,10 +857,10 @@ class CameraView : AppCompatActivity(), SensorEventListener {
     }
     fun angleFromCoordinate(lat1: Double, long1: Double, lat2: Double, long2: Double): Double {
         val dLon = (long2 - long1)
-        val y = Math.sin(Math.toRadians(dLon)) * Math.cos(Math.toRadians(lat2))
-        val x = Math.cos(Math.toRadians(lat1)) * Math.sin(Math.toRadians(lat2)) -
-                Math.sin(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.cos(Math.toRadians(dLon))
-        var brng = Math.toDegrees(Math.atan2(y, x))
+        val y = sin(Math.toRadians(dLon)) * cos(Math.toRadians(lat2))
+        val x = cos(Math.toRadians(lat1)) * sin(Math.toRadians(lat2)) -
+                sin(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * cos(Math.toRadians(dLon))
+        var brng = Math.toDegrees(atan2(y, x))
         brng = (brng + 360) % 360
         return brng
     }
@@ -870,9 +875,9 @@ class CameraView : AppCompatActivity(), SensorEventListener {
         val dLat = lat2 - lat1
         val dLon = lon2 - lon1
         //The square of half the chord length between the two points on the Earth's surface
-        val a = Math.sin(dLat / 2).pow(2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2).pow(2)
+        val a = sin(dLat / 2).pow(2) + cos(lat1) * cos(lat2) * sin(dLon / 2).pow(2)
         //The central angle between the two points on the Earth's surface.
-        val c = 2 * Math.asin(Math.sqrt(a))
+        val c = 2 * asin(sqrt(a))
 
         return radius * c * 1000 // Convert to meters
     }

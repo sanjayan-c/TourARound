@@ -5,28 +5,26 @@
     android:id="@+id/cusMyBookingListLayout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="10dp"
-    android:layout_marginEnd="10dp"
-    android:layout_marginTop="20dp"
+    android:layout_marginTop="10dp"
     android:background="@drawable/round_style"
     android:backgroundTint="@color/bar"
     android:padding="16dp">
 
     <TextView
         android:id="@+id/User"
-        android:layout_width="50dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="#FFFFFF"
-        android:textSize="16sp"
+        android:textSize="12sp"
         android:textStyle="bold" />
 
     <LinearLayout
         android:id="@+id/container"
-        android:layout_width="235dp"
+        android:layout_width="wrap_content"
+        android:layout_below="@+id/User"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_gravity="center"
-        android:layout_marginStart="53dp"
         android:layout_weight="1"
         android:orientation="vertical">
 
@@ -35,24 +33,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            tools:layout_conversion_absoluteHeight="22dp"
-            tools:layout_conversion_absoluteWidth="256dp"
-            tools:layout_editor_absoluteX="16dp"
-            tools:layout_editor_absoluteY="16dp" />
-
+            android:textSize="16sp"/>
     </LinearLayout>
-
+    <LinearLayout
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:layout_alignParentEnd="true">
     <Button
         android:id="@+id/editButton"
-        android:layout_width="66dp"
+        android:layout_width="match_parent"
         android:layout_height="30dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="0dp"
-        android:layout_marginEnd="0dp"
-        android:layout_toEndOf="@+id/container"
         android:backgroundTint="@color/white"
         android:text="Edit"
         android:textAlignment="center"
@@ -61,16 +53,12 @@
 
     <Button
         android:id="@+id/deleteButton"
-        android:layout_width="66dp"
+        android:layout_width="match_parent"
         android:layout_height="30dp"
-        android:layout_below="@id/editButton"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="6dp"
-        android:layout_marginEnd="0dp"
         android:backgroundTint="@color/white"
         android:text="Delete"
         android:textAlignment="center"
         android:textColor="@color/black"
         android:textSize="8sp" />
-
+    </LinearLayout>
 </RelativeLayout>

@@ -129,6 +129,8 @@ class Translator : AppCompatActivity() {
         backInTopBar = findViewById(R.id.backInTopBar)
         backInTopBar.visibility = View.VISIBLE
         backInTopBar.setOnClickListener{
+            val intent = Intent(this, CameraView::class.java)
+            startActivity(intent)
             finish()
         }
         val userMenu = findViewById<ImageView>(R.id.userMenu)
