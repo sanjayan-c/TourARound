@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="100dp"
+    android:width="50dp"
+    android:height="80dp"
     android:viewportWidth="30.0"
     android:viewportHeight="30.0">
     <!-- Customize the shape, color, and other properties of your arrow here -->
     <path
-        android:fillColor="@color/white"
+        android:fillColor="@color/bounding_box_color"
         android:pathData="M12 2L2 12h4v8h12v-8h4L12 2z" />
 </vector>

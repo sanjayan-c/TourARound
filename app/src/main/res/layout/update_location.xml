@@ -1,21 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    >
+    android:orientation="vertical">
+
+    <!-- Include the top_bar layout -->
+    <include
+        layout="@layout/top_bar"
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="50sp" />
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="150dp"
+        android:layout_marginTop= "80dp"
         android:layout_marginEnd="20dp"
         android:layout_marginStart="20dp"
         app:cardCornerRadius="30dp"
         app:cardElevation="20dp">
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -40,7 +46,7 @@
             <EditText
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:id="@+id/locationTitle"
+                android:id="@+id/editLocationTitle"
                 android:background="@drawable/border"
                 android:layout_marginTop="20dp"
                 android:padding="16dp"
@@ -51,27 +57,45 @@
 
             <EditText
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:id="@+id/locationDesc"
+                android:layout_height="70dp"
+                android:id="@+id/editLocationDesc"
                 android:background="@drawable/border"
                 android:layout_marginTop="20dp"
                 android:padding="16dp"
                 android:hint="Enter location description"
                 android:gravity="start|center_vertical"
                 android:textColor="@color/bar"/>
-
-            <Button
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:text="Save"
-                android:id="@+id/saveButton"
-                android:textSize="18sp"
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                app:cornerRadius = "20dp"/>
+                android:orientation="horizontal">
+
+                <Button
+                    android:layout_width="150dp"
+                    android:layout_height="40dp"
+                    android:text="Update"
+                    android:id="@+id/update"
+                    android:textSize="18sp"
+                    android:background="@color/edit_color"
+                    app:cornerRadius="40dp" />
+
+                <Button
+                    android:layout_width="150dp"
+                    android:layout_height="40dp"
+                    android:text="Cancel"
+                    android:id="@+id/cancelbtn"
+                    android:textSize="18sp"
+                    android:background="@color/delete_color"
+                    android:layout_marginStart="10dp"
+                    app:cornerRadius="20dp" />
+
+            </LinearLayout>
+
 
 
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
 
-</ScrollView>
+</LinearLayout>
